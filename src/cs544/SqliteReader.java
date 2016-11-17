@@ -71,7 +71,7 @@ public class SqliteReader {
 
 		try {
 			
-			ResultSet rs = statement.executeQuery(query);
+			ResultSet rs = statement.executeQuery(query + " GROUP BY " + target + " COLLATE NOCASE");
 			ArrayList<String> res = new ArrayList<String>();
 			
 			while (rs.next()) {
@@ -169,7 +169,7 @@ public class SqliteReader {
 	 * @return A String Array of cultures in the DB
 	 */
 	public String[] getCultures() {
-		String query = "SELECT " + Column.CULTURE.key + " FROM museum_db GROUP BY " + Column.CULTURE.key;
+		String query = "SELECT " + Column.CULTURE.key + " FROM museum_db";// GROUP BY " + Column.CULTURE.key;
 		
 		return runQuery(query, Column.CULTURE.key);
 	}
@@ -178,7 +178,7 @@ public class SqliteReader {
 		SqliteReader reader = new SqliteReader("paintings.db");
 		String[] output = reader.getCultures();//reader.getCulture(Column.ARTIST.key, "*");
 		Map<String, String> query = new HashMap<String, String>();
-		query.put(Column.CULTURE.key, output[0]);
+		query.put(Column.CULTURE.key, "italian");
 		//query.put(Column.CULTURE.key, "Italian");
 		String[] outs = reader.queryDB(Column.ARTIST.key, query);
 		System.out.println(Arrays.toString(output));
