@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<domain>
+	
+	
+	<initialstate>
+		<!-- Let module know to initialize necessary variables -->
+		<variable id="init">
+			<value>true</value>
+		</variable>
+		
+		<!-- Initial welcome message -->
+		<variable id="u_m">
+			<value>Welcome to the Virtual Getty Tour! Feel free to have a look around</value>
+		</variable>
+	</initialstate>
+	
+	<!-- Natural Language Understanding Models -->
+	<import href="getty_nlu.xml"/>
+	
+	
+	<!-- External module to interface with database -->
+	<settings>
+		<modules>cs544.DBModule</modules>
+	</settings>
+</domain>

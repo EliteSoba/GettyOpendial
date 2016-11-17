@@ -1,0 +1,141 @@
+<domain>
+	<!-- Natural language understanding models, constituted of two models: one model to recognise
+	the user dialogue act. from the utterance, and one model to update the slots in accordance with 
+	this dialogue act.
+	The user dialogue act associated with each utterance is represented here as a list of 
+	basic acts (such as "Confirm" or "Inform(...)").  This representation allows us to 
+	capture the fact that an utterance such as "Yes, 3 tickets" contains both a confirmation
+	and a new information about the number of tickets. 
+	-->
+
+	<model trigger="u_u">
+	  	  
+		<!-- Extracts paintings based on culture  -->
+		<rule>
+			<case>
+				<condition>
+					<if var="u_u" relation="contains" value=" * {Culture} * " />
+					<if var="Cultures" relation="contains" value="{Culture}" />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetCulture(Culture, {Culture})" exclusive="false"/>
+					<set var="u_m" value="DEBUG: Culture set to {Culture}"/>
+				</effect>
+			</case>
+		</rule>
+
+		<!-- Extracts paintings based on painter  -->
+		<rule>
+			<case>
+				<condition>
+					<if var="Painter" relation="in"
+						value="[Alessandro Magnasco, Francesco Solimena, Giovanni Girolamo Savoldo]" /> <!-- GetPainters_full() -->
+					<if var="u_u" relation="contains" value=" * {Painter} * " />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetPainter(Painter, {Painter})" exclusive="false"/>
+				</effect>
+			</case>
+            <case>
+				<condition>
+					<if var="Painter" relation="in"
+						value="[Magnasco, Solimena, Savoldo]" /> <!-- GetPainters_last() -->
+					<if var="u_u" relation="contains" value=" * {Painter} * " />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetPainter(Painter, {Painter})" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
+
+		<!-- Extracts paintings based on the material.  -->
+		<rule>
+			<case>
+				<condition>
+					<if var="Material" relation="in"
+						value="[Oil, water]" /> <!-- GetMaterials() -->
+					<if var="u_u" relation="contains" value=" * {Material} * " />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetMaterial(Material, {Material})" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
+
+		<!-- Extracts confirmations and disconfirmations -->
+		<rule>
+			<case>
+				<condition>
+					<if var="u_u" relation="contains" value="(yes|correct|exactly|sure|right)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Confirm" exclusive="false"/>
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="u_u" relation="contains" value="(no|nope|wrong)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Disconfirm" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
+
+		<!-- Rule of lower priority that associates the dialogue act to "Other"
+		    if nothing else is recognised. -->
+		<rule priority="2">
+			<case>
+				<condition>
+					<if var="u_u" relation="!=" value="None" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Other" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
+
+	</model>
+	
+	
+	<model trigger="a_u">
+		<!-- This model take the dialogue act fom the user and uses it to fill the corresponding
+	  slots (departure, destination, flight dates, number of tickets, etc.). -->
+	  
+	  
+		<!-- Fills the slots in accordance with the information in the dialogue act -->
+		<rule>
+			<case>
+				<condition>
+					<if var="current_step" value="NameOfCulture" />
+					<if var="a_u" relation="contains" value="SetCulture(Culture,{Culture})" />
+				</condition>
+				<effect>
+					<set var="{current_step}" value="{Culture}" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="NameOfPainter" />
+					<if var="a_u" relation="contains" value="SetPainter(Painter,{Painter})" />
+				</condition>
+				<effect>
+					<set var="{current_step}" value="{Painter}" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="NameOfMaterial" />
+					<if var="a_u" relation="contains" value="SetMaterial(Material,{Material})" />
+				</condition>
+				<effect>
+					<set var="{current_step}" value="{Material}" />
+				</effect>
+			</case>
+		</rule>
+
+
+	</model>
+	
+	</domain>
+
