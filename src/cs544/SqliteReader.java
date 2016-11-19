@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SqliteReader {
@@ -72,7 +73,6 @@ public class SqliteReader {
 		String[] results = null;
 
 		try {
-			
 			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE");
 			ArrayList<String> res = new ArrayList<String>();
 			
@@ -104,9 +104,10 @@ public class SqliteReader {
 	 * @param key The column to compare the key value to
 	 * @param value The value to compare
 	 * @param like Determine whether or not to use %Wildcards%
+	 * @param unique Whether or not only unique values are desirable
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
-	public String[] queryDB(Column target, Column key, String value, boolean like) {
+	public String[] queryDB(Column target, Column key, String value, boolean like, boolean unique) {
 		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE \"" + clean(key.key);
 		if (like) {
 			query += "\" LIKE \"%" + clean(value) + "%\"";
@@ -115,7 +116,7 @@ public class SqliteReader {
 			query += "\" = \"" + clean(value) + "\"";
 		}
 		
-		return runQuery(query, target, false);
+		return runQuery(query, target, unique);
 	}
 	
 	/**
@@ -124,9 +125,10 @@ public class SqliteReader {
 	 * @param target The target column to get results from
 	 * @param keys The column to compare the key value to
 	 * @param like Determine whether or not to use %Wildcards%
+	 * @param unique Whether or not only unique values are desirable
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
-	public String[] queryDB(Column target, Map<Column, String> keys, boolean like) {
+	public String[] queryDB(Column target, Map<Column, String[]> keys, boolean like, boolean unique) {
 		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE ";
 		
 		
@@ -134,50 +136,24 @@ public class SqliteReader {
 		//And not StringBuilding
 		boolean first = true;
 		for (Column key : keys.keySet()) {
-			if (!first) {
-				query += "AND ";
-			}
-			else {
-				first = false;
-			}
-			query += "\"" + clean(key.key);
-			if (like) {
-				query += "\" LIKE \"%" + clean(keys.get(key)) + "%\"";
-			}
-			else {
-				query += "\" = \"" + clean(keys.get(key)) + "\"";
+			for (String k : keys.get(key)){
+				if (!first) {
+					query += " AND ";
+				}
+				else {
+					first = false;
+				}
+				query += "\"" + clean(key.key);
+				if (like) {
+					query += "\" LIKE \"%" + clean(k) + "%\"";
+				}
+				else {
+					query += "\" = \"" + clean(k) + "\"";
+				}
 			}
 		}
 		
-		return runQuery(query, target, false);
-	}
-	
-	public String[] getTitle(Column key, String value) {
-		return queryDB(Column.TITLE, key, value, false);
-	}
-	
-	public String[] getArtist(Column key, String value) {
-		return queryDB(Column.ARTIST, key, value, false);
-	}
-	
-	public String[] getCulture(Column key, String value) {
-		return queryDB(Column.CULTURE, key, value, false);
-	}
-	
-	public String[] getDate(Column key, String value) {
-		return queryDB(Column.DATE, key, value, false);
-	}
-	
-	public String[] getMedium(Column key, String value) {
-		return queryDB(Column.MEDIUM, key, value, false);
-	}
-	
-	public String[] getDim(Column key, String value) {
-		return queryDB(Column.DIM, key, value, false);
-	}
-	
-	public String[] getStory(Column key, String value) {
-		return queryDB(Column.STORY, key, value, false);
+		return runQuery(query, target, unique);
 	}
 	
 	/**
@@ -277,26 +253,25 @@ public class SqliteReader {
 	
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("getty.db");
-		String[] output = reader.getAll(Column.TITLE, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.CULTURE, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.DATE, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.MEDIUM, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.DIM, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.STORY, true);
-		System.out.println(Arrays.toString(output));
-		output = reader.getAll(Column.ARTIST, true);
-		System.out.println(Arrays.toString(output));
-		//Map<Column, String> query = new HashMap<Column, String>();
-		//query.put(Column.CULTURE, "italian");
-		//query.put(Column.CULTURE, "Italian");
-		//String[] outs = reader.queryDB(Column.ARTIST, query);
+//		String[] output = reader.getAll(Column.TITLE, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.CULTURE, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.DATE, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.MEDIUM, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.DIM, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.STORY, true);
+//		System.out.println(Arrays.toString(output));
+//		output = reader.getAll(Column.ARTIST, true);
+//		System.out.println(Arrays.toString(output));
+		Map<Column, String[]> query = new HashMap<Column, String[]>();
+		query.put(Column.CULTURE, new String[]{"french"});
+		String[] outs = reader.queryDB(Column.CULTURE, query, true, true);
 		//System.out.println(Arrays.toString(output));
-		//System.out.println(Arrays.toString(outs));
+		System.out.println(Arrays.toString(outs));
 	}
 
 }

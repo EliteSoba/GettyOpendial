@@ -25,6 +25,8 @@
 	<!-- Dialogue Management, etc. -->
 	<import href="getty_dm.xml"/>
 	
+	<!-- Natural Language Generation -->
+	<import href="getty_nlg.xml"/>
 	
 	<!-- External module to interface with database -->
 	<!-- Also module to fuzzy match -->

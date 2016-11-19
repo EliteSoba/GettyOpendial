@@ -19,7 +19,7 @@ public class DBModule implements Module{
 	SqliteReader reader;
 	String[] cultures, artists, media, sizes, titles;
 	String culture, artist, medium, size, title, date, story;
-	Map<Column, String> attributes;
+	Map<Column, String[]> attributes;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
 			"la", "y", "ter", "and", "by", "workshop"};
@@ -44,7 +44,7 @@ public class DBModule implements Module{
 		reader = new SqliteReader("getty.db");
 		
 		cultures = reader.getAll(Column.CULTURE, true);
-		attributes = new HashMap<Column, String>();
+		attributes = new HashMap<Column, String[]>();
 	}
 	
 	/**
@@ -132,15 +132,67 @@ public class DBModule implements Module{
 			system.addContent("Cultures", Arrays.toString(cultures));
 		}
 		
+		if (updatedVars.contains("ResolveCulture")) {
+			String[] cults = state.queryProb("ResolveCulture").getBest().toString().trim().split("#");
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			
+			query.put(Column.CULTURE, cults);
+			
+			String[] results = reader.queryDB(Column.CULTURE, query, true, true);
+			
+			//No results. AskRepeat
+			if (results == null || results.length == 0) {
+				system.addContent("a_m", "AskRepeat");
+			}
+			else if (results.length == 1) {
+				system.addContent("NameOfCulture", results[0]);
+				system.addContent("NameOfCultureStatus", "confirmed");
+				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
+			}
+			else {
+				system.addContent("NameOfCulture", results[0]);
+				system.addContent("NameOfCultureStatus", "tentative");
+			}
+		}
+		
 		if (updatedVars.contains("GetArtists")) {
 			culture = state.queryProb("GetArtists").getBest().toString().trim();
-			attributes.put(Column.CULTURE, culture);
-			artists = reader.getArtist(Column.CULTURE, culture);
-			artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
+			attributes.put(Column.CULTURE, new String[]{culture});
+			artists = reader.queryDB(Column.ARTIST, Column.CULTURE, culture, true, true);
+			if (artists != null) {
+				artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
+				
+				system.addContent("Artists", Arrays.toString(split(artists, " ")));
+				
+				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", "));
+			}
+			else {
+				system.addContent("u_m", "Oops, we don't have any works by " + culture + " artists!");
+			}
+		}
+		
+		if (updatedVars.contains("ResolveArtist")) {
+			String[] arts = state.queryProb("ResolveArtist").getBest().toString().trim().split("#");
+			//attributes.put(Column.CULTURE, new String[]{culture});
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			query.putAll(attributes);
+			query.put(Column.ARTIST, arts);
 			
-			system.addContent("Artists", Arrays.toString(split(artists, " ")));
+			String[] results = reader.queryDB(Column.ARTIST, query, true, true);
 			
-			system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", "));
+			//No results. AskRepeat
+			if (results == null || results.length == 0) {
+				system.addContent("a_m", "AskRepeat");
+			}
+			else if (results.length == 1) {
+				system.addContent("NameOfArtist", results[0]);
+				system.addContent("NameOfArtistStatus", "confirmed");
+				system.addContent("a_m", "Ground(NameOfArtist, " + results[0] + ")");
+			}
+			else {
+				system.addContent("NameOfArtist", results[0]);
+				system.addContent("NameOfArtistStatus", "tentative");
+			}
 		}
 		
 		

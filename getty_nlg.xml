@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain>
+	<!-- Natural language generation models. -->
+	<model trigger="a_m">
+		<rule id="Basic AskRepeat">
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeat" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="I'm sorry, could you repeat that for me?" />
+				</effect>
+			</case>
+		</rule>
+	</model>
+</domain>
