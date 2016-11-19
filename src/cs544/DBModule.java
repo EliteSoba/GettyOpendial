@@ -142,7 +142,7 @@ public class DBModule implements Module{
 			
 			//No results. AskRepeat
 			if (results == null || results.length == 0) {
-				system.addContent("a_m", "AskRepeat");
+				system.addContent("a_m", "AskRepeatCulture");
 			}
 			else if (results.length == 1) {
 				system.addContent("NameOfCulture", results[0]);

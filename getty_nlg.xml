@@ -2,6 +2,17 @@
 <domain>
 	<!-- Natural language generation models. -->
 	<model trigger="a_m">
+		<rule id="Culture AskRepeat">
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeatCulture" />
+				</condition>
+				<effect util="1">
+					<!-- This flag is specific to when ResolveCulture fails, which only happens when multiple cultures are input in one utterance -->
+					<set var="u_m" value="Whoa there, slow down buddy. Let's do one culture at a time" />
+				</effect>
+			</case>
+		</rule>
 		<rule id="Basic AskRepeat">
 			<case>
 				<condition>
