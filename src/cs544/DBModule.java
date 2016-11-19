@@ -2,7 +2,9 @@ package cs544;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import opendial.DialogueState;
 import opendial.DialogueSystem;
@@ -18,6 +20,9 @@ public class DBModule implements Module{
 	String[] cultures, artists, media, sizes, titles;
 	String culture, artist, medium, size, title, date, story;
 	Map<Column, String> attributes;
+	
+	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
+			"la", "y", "ter", "and", "by", "workshop"};
 	
 	@Override
 	public boolean isRunning() {
@@ -36,7 +41,7 @@ public class DBModule implements Module{
 	
 	@Override
 	public void start() {
-		reader = new SqliteReader("paintings.db");
+		reader = new SqliteReader("getty.db");
 		
 		cultures = reader.getAll(Column.CULTURE, true);
 		attributes = new HashMap<Column, String>();
@@ -64,6 +69,54 @@ public class DBModule implements Module{
 		
 		return s.toString();
 	}
+	
+	/**
+	 * Splits a list of strings into a larger list of string containing
+	 * all the elements of the list split by the divisor
+	 * @param list The list of words to split
+	 * @param divisor The sequence to split by
+	 * @return The newly formed list
+	 */
+	public static String[] split(String[] list, String divisor) {
+		Set<String> tokens = new HashSet<String>();
+		
+		for (String s : list) {
+			for (String token : s.split(divisor)) {
+				tokens.add(token.toLowerCase());
+			}
+		}
+		
+		for (String word : stopwords) {
+			if (tokens.remove(word)) {
+				System.out.println(word);
+			}
+		}
+		
+		String[] newList = new String[tokens.size()];
+		
+		int i = 0;
+		for (String token : tokens) {
+			newList[i++] = token;
+		}
+		
+		return newList;
+	}
+	
+	/**
+	 * Return a String array of the arguments of an action
+	 * @param action The whole action(args, ...)
+	 * @return A String array of the args
+	 */
+	public static String[] getArgs(String action) {
+		String args = action.substring(action.indexOf('(')+1, action.length()-1);
+		String[] arguments = args.split(",");
+		
+		for (int i = 0; i < arguments.length; ++i) {
+			arguments[i] = arguments[i].trim();
+		}
+		
+		return arguments;
+	}
 
 	@Override
 	public void trigger(DialogueState state, Collection<String> updatedVars) {
@@ -85,7 +138,7 @@ public class DBModule implements Module{
 			artists = reader.getArtist(Column.CULTURE, culture);
 			artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
 			
-			system.addContent("Artists", Arrays.toString(artists));
+			system.addContent("Artists", Arrays.toString(split(artists, " ")));
 			
 			system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", "));
 		}

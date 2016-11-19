@@ -27,7 +27,9 @@
 	
 	
 	<!-- External module to interface with database -->
+	<!-- Also module to fuzzy match -->
 	<settings>
-		<modules>cs544.DBModule</modules>
+		<modules>cs544.DBModule,cs544.FuzzyGetModule</modules>
 	</settings>
+	<function name="FuzzyMatch">cs544.FuzzyMatch</function>
 </domain>

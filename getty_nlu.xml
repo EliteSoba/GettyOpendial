@@ -11,14 +11,12 @@
 	<model trigger="u_u">
 	  	  
 		<!-- Extracts paintings based on culture  -->
+		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
+		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
 		<rule>
 			<case>
-				<condition>
-					<if var="u_u" relation="contains" value=" * {Culture} * " />
-					<if var="Cultures" relation="contains" value="{Culture}" />
-				</condition>
-				<effect>
-					<set var="a_u" value="SetCulture({Culture})" exclusive="false"/>
+				<effect prob="FuzzyMatch({u_u},{Cultures})">
+					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -27,22 +25,9 @@
 		<rule>
 			<case>
 				<condition>
-					<if var="Artist" relation="in"
-						value="[Alessandro Magnasco, Francesco Solimena, Giovanni Girolamo Savoldo]" /> <!-- GetArtists_full() -->
-					<if var="u_u" relation="contains" value=" * {Artist} * " />
 				</condition>
-				<effect>
-					<set var="a_u" value="SetArtist({Artist})" exclusive="false"/>
-				</effect>
-			</case>
-            <case>
-				<condition>
-					<if var="Artist" relation="in"
-						value="[Magnasco, Solimena, Savoldo]" /> <!-- GetArtists_last() -->
-					<if var="u_u" relation="contains" value=" * {Artist} * " />
-				</condition>
-				<effect>
-					<set var="a_u" value="SetArtist({Artist})" exclusive="false"/>
+				<effect prob="FuzzyMatch({u_u},{Artists})">
+					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
