@@ -157,6 +157,48 @@ public class SqliteReader {
 	}
 	
 	/**
+	 * Removes parenthetical values from a single String
+	 * @param word The string to remove parentheticals from
+	 * @return The word with all parenthetical values removed
+	 */
+	public static String removeParens(String word) {
+		StringBuilder res = new StringBuilder();
+		int depth = 0;
+		for (int j = 0; j < word.length(); j++) {
+			char ch = word.charAt(j);
+			if (ch == '(') {
+				++depth;
+			}
+			else if (ch == ')') {
+				--depth;
+				if (depth == 0 && word.substring(j).indexOf('(') != -1) {
+					res.append('.');
+				}
+			}
+			else if (depth == 0) {
+				if (ch == ',') {
+					ch = '.';
+				}
+				res.append(ch);
+			}
+		}
+		
+		String result = res.toString().trim();
+		if (result.charAt(result.length()-1) == '.') {
+			result = result.substring(0, result.length()-2);
+			result = result.trim();
+		}
+		
+		//Lot of cleaning up
+		while (result.indexOf("  ") != -1) {
+			result = result.replace("  ", " ");
+		}
+		result = result.replace(" .", ".");
+		result = result.replace(". and", " and");
+		return result;
+	}
+	
+	/**
 	 * Removes parenthetical values from a list of Strings
 	 * @param results The array to remove parentheticals from
 	 * @return An array with all parenthetical values removed
@@ -167,41 +209,7 @@ public class SqliteReader {
 		String[] newResults = new String[results.length];
 		
 		for (int i = 0; i < results.length; ++i) {
-			String result = results[i];
-			
-			StringBuilder res = new StringBuilder();
-			int depth = 0;
-			for (int j = 0; j < result.length(); j++) {
-				char ch = result.charAt(j);
-				if (ch == '(') {
-					++depth;
-				}
-				else if (ch == ')') {
-					--depth;
-					if (depth == 0 && result.substring(j).indexOf('(') != -1) {
-						res.append('.');
-					}
-				}
-				else if (depth == 0) {
-					if (ch == ',') {
-						ch = '.';
-					}
-					res.append(ch);
-				}
-			}
-			
-			newResults[i] = res.toString().trim();
-			if (newResults[i].charAt(newResults[i].length()-1) == '.') {
-				newResults[i] = newResults[i].substring(0, newResults[i].length()-2);
-				newResults[i] = newResults[i].trim();
-			}
-			
-			//Lot of cleaning up
-			while (newResults[i].indexOf("  ") != -1) {
-				newResults[i] = newResults[i].replace("  ", " ");
-			}
-			newResults[i] = newResults[i].replace(" .", ".");
-			newResults[i] = newResults[i].replace(". and", " and");
+			newResults[i] = removeParens(results[i]);
 		}
 		return newResults;
 	}
@@ -253,8 +261,10 @@ public class SqliteReader {
 	
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("getty.db");
-//		String[] output = reader.getAll(Column.TITLE, true);
-//		System.out.println(Arrays.toString(output));
+		
+		String[] output = reader.getAll(Column.TITLE, false);
+		output = DBModule.split(output, " ");
+		System.out.println(Arrays.toString(output));
 //		output = reader.getAll(Column.CULTURE, true);
 //		System.out.println(Arrays.toString(output));
 //		output = reader.getAll(Column.DATE, true);
@@ -268,10 +278,29 @@ public class SqliteReader {
 //		output = reader.getAll(Column.ARTIST, true);
 //		System.out.println(Arrays.toString(output));
 		Map<Column, String[]> query = new HashMap<Column, String[]>();
-		query.put(Column.CULTURE, new String[]{"french"});
-		String[] outs = reader.queryDB(Column.CULTURE, query, true, true);
+		query.put(Column.CULTURE, new String[]{""});
+		String[] outs = reader.queryDB(Column.DIM, query, true, true);
+		outs = removeParens(outs);
+		double[] totals = new double[outs.length];
+		int j = 0;
+		for (String s : outs) {
+			double total = 1.0;
+			for (String i : s.split(" ")) {
+				if (i.matches("[0-9]+(\\.[0-9]+)?")) {
+					//Shouldn't fail with this regex
+					total *= Double.parseDouble(i);
+				}
+			}
+			//System.out.println(s + ": " + total);
+			totals[j++] = total;
+		}
+		
+		Arrays.sort(totals);
+		
+		//Sizes: 1 <= Small <= 3600 <= Medium <= 10000 <= Large
+		System.out.println(Arrays.toString(totals));
 		//System.out.println(Arrays.toString(output));
-		System.out.println(Arrays.toString(outs));
+		//System.out.println(Arrays.toString(outs));
 	}
 
 }

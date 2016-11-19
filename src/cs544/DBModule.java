@@ -22,7 +22,8 @@ public class DBModule implements Module{
 	Map<Column, String[]> attributes;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
-			"la", "y", "ter", "and", "by", "workshop"};
+			"la", "y", "ter", "and", "by", "workshop", "with", "for", "in", "an", "a", "at", "as", "du", "et", "other", "new",
+			"me", "on", "about", "open", "un", "please", "aux", "not", "lot", "los", "from"};
 	
 	@Override
 	public boolean isRunning() {
@@ -82,14 +83,13 @@ public class DBModule implements Module{
 		
 		for (String s : list) {
 			for (String token : s.split(divisor)) {
-				tokens.add(token.toLowerCase());
+				//Also remove some punctuation
+				tokens.add(token.toLowerCase().replaceAll("(,|\\.|\\?|!|\\[|\\]|\\(|\\)|\\\"|\\:)", ""));
 			}
 		}
 		
 		for (String word : stopwords) {
-			if (tokens.remove(word)) {
-				System.out.println(word);
-			}
+			tokens.remove(word);
 		}
 		
 		String[] newList = new String[tokens.size()];
@@ -199,9 +199,19 @@ public class DBModule implements Module{
 			}
 		}
 		
-		if (updatedVars.contains("GetSize")) {
-			artist = state.queryProb("GetSize").getBest().toString().trim();
+		if (updatedVars.contains("GetTitles")) {
+			artist = state.queryProb("GetTitles").getBest().toString().trim();
 			attributes.put(Column.ARTIST, new String[]{artist});
+			titles = reader.queryDB(Column.TITLE, attributes, true, true);
+			
+			if (titles != null) {
+				system.addContent("Titles", Arrays.toString(split(titles, " ")));
+				
+				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; "));
+			}
+			else {
+				system.addContent("u_m", "Oops, we don't seem to have any works by that artist!");
+			}
 		}
 		
 		
