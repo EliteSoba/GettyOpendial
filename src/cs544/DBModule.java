@@ -214,6 +214,31 @@ public class DBModule implements Module{
 			}
 		}
 		
+		if (updatedVars.contains("ResolveTitle")) {
+			String[] ts = state.queryProb("ResolveTitle").getBest().toString().trim().split("#");
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			query.putAll(attributes);
+			query.put(Column.TITLE, ts);
+			
+			String[] results = reader.queryDB(Column.TITLE, query, true, true);
+			
+			//No results. AskRepeat
+			if (results == null || results.length == 0) {
+				system.addContent("a_m", "AskRepeat");
+			}
+			else if (results.length == 1) {
+				system.addContent("TitleOfArtwork", results[0]);
+				system.addContent("TitleOfArtworkStatus", "confirmed");
+				system.addContent("a_m", "Ground(TitleOfArtwork, " + results[0] + ")");
+			}
+			else {
+				system.addContent("TitleOfArtwork", results[0]);
+				system.addContent("TitleOfArtworkStatus", "tentative");
+			}
+		}
+		
+		
+		
 		
 		//if (updatedVars.contains("NameOfCultureStatus")) {
 			/*String culture = state.queryProb("NameOfCulture").getBest().toString().trim();

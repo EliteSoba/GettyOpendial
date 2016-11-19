@@ -47,6 +47,15 @@
 				</effect>
 			</case>
 		</rule>
+		
+		<!-- Time to get the title -->
+		<rule>
+			<case>
+				<effect prob="FuzzyMatch({u_u},{Titles})">
+					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
 
 		<!-- Extracts confirmations and disconfirmations -->
 		<rule>
@@ -116,6 +125,15 @@
 				</condition>
 				<effect>
 					<set var="{current_step}" value="{Size}" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="TitleOfArtwork" />
+					<if var="a_u" relation="contains" value="SetTitle({Title})" />
+				</condition>
+				<effect>
+					<set var="ResolveTitle" value="{Title}" />
 				</effect>
 			</case>
 		</rule>
