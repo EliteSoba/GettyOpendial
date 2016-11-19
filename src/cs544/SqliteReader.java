@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SqliteReader {
@@ -14,14 +13,16 @@ public class SqliteReader {
 	Connection connection;
 	Statement statement;
 	
+	public static final String TABLE = "PAINTINGS";
+	
 	public enum Column {
-		TITLE ("LIST_TITLE"),
-		ARTIST ("LIST_ARTIST_MAKER"),
-		CULTURE ("LIST_CULTURE"),
-		DATE ("LIST_DATE"),
-		MEDIUM ("LIST_MEDIUM"),
-		DIM ("LIST_DIMENSIONS"),
-		STORY ("LIST_STORY");
+		TITLE ("TITLE"),
+		ARTIST ("ARTIST"),
+		CULTURE ("CULTURE"),
+		DATE ("DATE"),
+		MEDIUM ("MEDIUM"),
+		DIM ("DIMENSIONS"),
+		STORY ("STORY");
 		
 		public String key;
 		Column(String key) {
@@ -106,7 +107,7 @@ public class SqliteReader {
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
 	public String[] queryDB(Column target, Column key, String value, boolean like) {
-		String query = "SELECT \"" + clean(target.key) + "\" FROM MUSEUM_DB WHERE \"" + clean(key.key);
+		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE \"" + clean(key.key);
 		if (like) {
 			query += "\" LIKE \"%" + clean(value) + "%\"";
 		}
@@ -126,7 +127,7 @@ public class SqliteReader {
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
 	public String[] queryDB(Column target, Map<Column, String> keys, boolean like) {
-		String query = "SELECT \"" + clean(target.key) + "\" FROM MUSEUM_DB WHERE ";
+		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE ";
 		
 		
 		//Someone in the world is probably very unhappy that I'm concatenating
@@ -261,7 +262,7 @@ public class SqliteReader {
 	 * @return A String array of unique values in that column
 	 */
 	public String[] getAll(Column column, boolean parens) {
-		String query = "SELECT " + column.key + " FROM museum_db";
+		String query = "SELECT " + column.key + " FROM " + TABLE;
 		String[] results = runQuery(query, column, true);
 		
 		if (parens) {
@@ -275,13 +276,26 @@ public class SqliteReader {
 	}
 	
 	public static void main(String[] args) {
-		SqliteReader reader = new SqliteReader("paintings.db");
-		String[] output = reader.getAll(Column.ARTIST, true);
-		Map<Column, String> query = new HashMap<Column, String>();
-		query.put(Column.CULTURE, "italian");
+		SqliteReader reader = new SqliteReader("getty.db");
+		String[] output = reader.getAll(Column.TITLE, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.CULTURE, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.DATE, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.MEDIUM, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.DIM, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.STORY, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.ARTIST, true);
+		System.out.println(Arrays.toString(output));
+		//Map<Column, String> query = new HashMap<Column, String>();
+		//query.put(Column.CULTURE, "italian");
 		//query.put(Column.CULTURE, "Italian");
 		//String[] outs = reader.queryDB(Column.ARTIST, query);
-		System.out.println(Arrays.toString(output));
+		//System.out.println(Arrays.toString(output));
 		//System.out.println(Arrays.toString(outs));
 	}
 
