@@ -116,11 +116,11 @@
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfPainter" />
-					<if var="a_u" relation="contains" value="SetPainter({Painter})" />
+					<if var="current_step" value="NameOfArtist" />
+					<if var="a_u" relation="contains" value="SetArtist({Artist})" />
 				</condition>
 				<effect>
-					<set var="{current_step}" value="{Painter}" />
+					<set var="{current_step}" value="{Artist}" />
 				</effect>
 			</case>
 			<case>
