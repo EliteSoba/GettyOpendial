@@ -32,16 +32,17 @@
 			</case>
 		</rule>
 
-		<!-- Extracts paintings based on the medium.  -->
+		<!-- Extracts paintings based on the SIZE.  -->
+		<!-- Sorry, but I think size is more interesting than medium here -->
 		<rule>
 			<case>
 				<condition>
-					<if var="Medium" relation="in"
+					<if var="Size" relation="in"
 						value="[Oil, water]" /> <!-- GetMedium() -->
-					<if var="u_u" relation="contains" value=" * {Medium} * " />
+					<if var="u_u" relation="contains" value=" * {Size} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetMedium({Medium})" exclusive="false"/>
+					<set var="a_u" value="SetSize({Size})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -109,11 +110,11 @@
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfMedium" />
-					<if var="a_u" relation="contains" value="SetMedium({Medium})" />
+					<if var="current_step" value="SizeOfArtwork" />
+					<if var="a_u" relation="contains" value="SetSize({Size})" />
 				</condition>
 				<effect>
-					<set var="{current_step}" value="{Medium}" />
+					<set var="{current_step}" value="{Size}" />
 				</effect>
 			</case>
 		</rule>
