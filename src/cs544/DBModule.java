@@ -151,7 +151,11 @@ public class DBModule implements Module{
 			}
 			else {
 				system.addContent("NameOfCulture", results[0]);
-				system.addContent("NameOfCultureStatus", "tentative");
+				//system.addContent("NameOfCultureStatus", "tentative");
+				//The only time we get here on culture is the one "French or German" and all the "Italian (...)"s
+				//In which case, "French", "German", or "Italian" are all fine
+				system.addContent("NameOfCultureStatus", "confirmed");
+				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
 			}
 		}
 		
@@ -193,6 +197,11 @@ public class DBModule implements Module{
 				system.addContent("NameOfArtist", results[0]);
 				system.addContent("NameOfArtistStatus", "tentative");
 			}
+		}
+		
+		if (updatedVars.contains("GetSize")) {
+			artist = state.queryProb("GetSize").getBest().toString().trim();
+			attributes.put(Column.ARTIST, new String[]{artist});
 		}
 		
 		
