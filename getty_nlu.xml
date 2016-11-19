@@ -19,7 +19,6 @@
 				</condition>
 				<effect>
 					<set var="a_u" value="SetCulture({Culture})" exclusive="false"/>
-					<set var="u_m" value="DEBUG: Culture set to {Culture}"/>
 				</effect>
 			</case>
 		</rule>

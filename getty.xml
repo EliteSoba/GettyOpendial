@@ -22,6 +22,9 @@
 	<!-- Natural Language Understanding Models -->
 	<import href="getty_nlu.xml"/>
 	
+	<!-- Dialogue Management, etc. -->
+	<import href="getty_dm.xml"/>
+	
 	
 	<!-- External module to interface with database -->
 	<settings>

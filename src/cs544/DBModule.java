@@ -63,13 +63,13 @@ public class DBModule implements Module{
 			}
 		}
 		
-		if (updatedVars.contains("NameOfCulture")) {
-			String culture = state.queryProb("NameOfCulture").getBest().toString().trim();
+		//if (updatedVars.contains("NameOfCultureStatus")) {
+			/*String culture = state.queryProb("NameOfCulture").getBest().toString().trim();
 			culture = culture.toLowerCase();
 			culture = culture.substring(0, 1).toUpperCase() + culture.substring(1);
 			String[] artists = reader.getArtist(Column.CULTURE, culture);
 			system.addContent("Artists", Arrays.toString(artists));
-			String output = culture + ", eh? Well here's a list of artists:\n";
+			/*String output = culture + ", eh? Well here's a list of artists:\n";
 			
 			for (String artist : artists) {
 				if (artist.indexOf('(') != -1) {
@@ -80,8 +80,8 @@ public class DBModule implements Module{
 				}
 			}
 			
-			system.addContent("u_m", output);
-		}
+			system.addContent("u_m", output);*/
+		//}
 		
 	}
 
