@@ -18,7 +18,7 @@
 					<if var="Cultures" relation="contains" value="{Culture}" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetCulture(Culture, {Culture})" exclusive="false"/>
+					<set var="a_u" value="SetCulture({Culture})" exclusive="false"/>
 					<set var="u_m" value="DEBUG: Culture set to {Culture}"/>
 				</effect>
 			</case>
@@ -33,7 +33,7 @@
 					<if var="u_u" relation="contains" value=" * {Painter} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetPainter(Painter, {Painter})" exclusive="false"/>
+					<set var="a_u" value="SetPainter({Painter})" exclusive="false"/>
 				</effect>
 			</case>
             <case>
@@ -43,7 +43,7 @@
 					<if var="u_u" relation="contains" value=" * {Painter} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetPainter(Painter, {Painter})" exclusive="false"/>
+					<set var="a_u" value="SetPainter({Painter})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -57,7 +57,7 @@
 					<if var="u_u" relation="contains" value=" * {Material} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetMaterial(Material, {Material})" exclusive="false"/>
+					<set var="a_u" value="SetMaterial({Material})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -108,7 +108,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="NameOfCulture" />
-					<if var="a_u" relation="contains" value="SetCulture(Culture,{Culture})" />
+					<if var="a_u" relation="contains" value="SetCulture({Culture})" />
 				</condition>
 				<effect>
 					<set var="{current_step}" value="{Culture}" />
@@ -117,7 +117,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="NameOfPainter" />
-					<if var="a_u" relation="contains" value="SetPainter(Painter,{Painter})" />
+					<if var="a_u" relation="contains" value="SetPainter({Painter})" />
 				</condition>
 				<effect>
 					<set var="{current_step}" value="{Painter}" />
@@ -126,7 +126,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="NameOfMaterial" />
-					<if var="a_u" relation="contains" value="SetMaterial(Material,{Material})" />
+					<if var="a_u" relation="contains" value="SetMaterial({Material})" />
 				</condition>
 				<effect>
 					<set var="{current_step}" value="{Material}" />
