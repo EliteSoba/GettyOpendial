@@ -64,18 +64,19 @@ public class SqliteReader {
 	 * column as a String array
 	 * @param query The query to run against the DB
 	 * @param target The column of interest
+	 * @param unique Whether or not to return only unique results
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
-	private String[] runQuery(String query, String target) {
+	private String[] runQuery(String query, Column target, boolean unique) {
 		String[] results = null;
 
 		try {
 			
-			ResultSet rs = statement.executeQuery(query + " GROUP BY " + target + " COLLATE NOCASE");
+			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE");
 			ArrayList<String> res = new ArrayList<String>();
 			
 			while (rs.next()) {
-				res.add(rs.getString(target));
+				res.add(rs.getString(target.key));
 			}
 			
 			if (res.size() == 0) {
@@ -101,12 +102,19 @@ public class SqliteReader {
 	 * @param target The column to get results from
 	 * @param key The column to compare the key value to
 	 * @param value The value to compare
+	 * @param like Determine whether or not to use %Wildcards%
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
-	public String[] queryDB(String target, String key, String value) {
-		String query = "SELECT \"" + clean(target) + "\" FROM MUSEUM_DB WHERE \"" + clean(key) + "\" = \"" + clean(value) + "\"";
+	public String[] queryDB(Column target, Column key, String value, boolean like) {
+		String query = "SELECT \"" + clean(target.key) + "\" FROM MUSEUM_DB WHERE \"" + clean(key.key);
+		if (like) {
+			query += "\" LIKE \"%" + clean(value) + "%\"";
+		}
+		else {
+			query += "\" = \"" + clean(value) + "\"";
+		}
 		
-		return runQuery(query, target);
+		return runQuery(query, target, false);
 	}
 	
 	/**
@@ -114,75 +122,167 @@ public class SqliteReader {
 	 * Again, doesn't return multiple columns
 	 * @param target The target column to get results from
 	 * @param keys The column to compare the key value to
+	 * @param like Determine whether or not to use %Wildcards%
 	 * @return null if no matching results are found; otherwise a String array of all matching results
 	 */
-	public String[] queryDB(String target, Map<String, String> keys) {
-		String query = "SELECT \"" + clean(target) + "\" FROM MUSEUM_DB WHERE ";
+	public String[] queryDB(Column target, Map<Column, String> keys, boolean like) {
+		String query = "SELECT \"" + clean(target.key) + "\" FROM MUSEUM_DB WHERE ";
 		
 		
 		//Someone in the world is probably very unhappy that I'm concatenating
 		//And not StringBuilding
 		boolean first = true;
-		for (String key : keys.keySet()) {
+		for (Column key : keys.keySet()) {
 			if (!first) {
 				query += "AND ";
 			}
 			else {
 				first = false;
 			}
-			query += "\"" + clean(key) + "\" = \"" + clean(keys.get(key)) + "\"";
+			query += "\"" + clean(key.key);
+			if (like) {
+				query += "\" LIKE \"%" + clean(keys.get(key)) + "%\"";
+			}
+			else {
+				query += "\" = \"" + clean(keys.get(key)) + "\"";
+			}
 		}
 		
-		return runQuery(query, target);
+		return runQuery(query, target, false);
 	}
 	
-	public String[] getTitle(String key, String value) {
-		return queryDB(Column.TITLE.key, key, value);
+	public String[] getTitle(Column key, String value) {
+		return queryDB(Column.TITLE, key, value, false);
 	}
 	
-	public String[] getArtist(String key, String value) {
-		return queryDB(Column.ARTIST.key, key, value);
+	public String[] getArtist(Column key, String value) {
+		return queryDB(Column.ARTIST, key, value, false);
 	}
 	
-	public String[] getCulture(String key, String value) {
-		return queryDB(Column.CULTURE.key, key, value);
+	public String[] getCulture(Column key, String value) {
+		return queryDB(Column.CULTURE, key, value, false);
 	}
 	
-	public String[] getDate(String key, String value) {
-		return queryDB(Column.DATE.key, key, value);
+	public String[] getDate(Column key, String value) {
+		return queryDB(Column.DATE, key, value, false);
 	}
 	
-	public String[] getMedium(String key, String value) {
-		return queryDB(Column.MEDIUM.key, key, value);
+	public String[] getMedium(Column key, String value) {
+		return queryDB(Column.MEDIUM, key, value, false);
 	}
 	
-	public String[] getDim(String key, String value) {
-		return queryDB(Column.DIM.key, key, value);
+	public String[] getDim(Column key, String value) {
+		return queryDB(Column.DIM, key, value, false);
 	}
 	
-	public String[] getStory(String key, String value) {
-		return queryDB(Column.STORY.key, key, value);
+	public String[] getStory(Column key, String value) {
+		return queryDB(Column.STORY, key, value, false);
 	}
 	
 	/**
-	 * Returns a list of all the Cultures represented in the DB
-	 * @return A String Array of cultures in the DB
+	 * Removes parenthetical values from a list of Strings
+	 * @param results The array to remove parentheticals from
+	 * @return An array with all parenthetical values removed
 	 */
-	public String[] getCultures() {
-		String query = "SELECT " + Column.CULTURE.key + " FROM museum_db";// GROUP BY " + Column.CULTURE.key;
+	public static String[] removeParens(String[] results) {
+		//It'd be more efficient to just modify the original array, I guess
+		//Just not a fan of modifying parameters
+		String[] newResults = new String[results.length];
 		
-		return runQuery(query, Column.CULTURE.key);
+		for (int i = 0; i < results.length; ++i) {
+			String result = results[i];
+			
+			StringBuilder res = new StringBuilder();
+			int depth = 0;
+			for (int j = 0; j < result.length(); j++) {
+				char ch = result.charAt(j);
+				if (ch == '(') {
+					++depth;
+				}
+				else if (ch == ')') {
+					--depth;
+					if (depth == 0 && result.substring(j).indexOf('(') != -1) {
+						res.append('.');
+					}
+				}
+				else if (depth == 0) {
+					if (ch == ',') {
+						ch = '.';
+					}
+					res.append(ch);
+				}
+			}
+			
+			newResults[i] = res.toString().trim();
+			if (newResults[i].charAt(newResults[i].length()-1) == '.') {
+				newResults[i] = newResults[i].substring(0, newResults[i].length()-2);
+				newResults[i] = newResults[i].trim();
+			}
+			
+			//Lot of cleaning up
+			while (newResults[i].indexOf("  ") != -1) {
+				newResults[i] = newResults[i].replace("  ", " ");
+			}
+			newResults[i] = newResults[i].replace(" .", ".");
+			newResults[i] = newResults[i].replace(". and", " and");
+		}
+		return newResults;
+	}
+	
+	/**
+	 * Removes duplicate entries in an array
+	 * @param results The array to remove duplicates from
+	 * @return String Array with all duplicates removed
+	 */
+	public static String[] removeDupes(String[] results) {
+		ArrayList<String> newResults = new ArrayList<String>();
+		
+		//O(N^2) removal of duplicates. results is probably sorted
+		//and even if not, can be sorted in O(N*log(N)) and duplicate
+		//removal on sorted list can be done in O(N), but eh.
+		for (String result : results) {
+			if (!newResults.contains(result)) {
+				newResults.add(result);
+			}
+		}
+		
+		//Convert ArrayList back to String Array
+		String[] res = new String[newResults.size()];
+		for (int i = 0; i < res.length; ++i) {
+			res[i] = newResults.get(i);
+		}
+		return res;
+	}
+	
+	/**
+	 * Get all the unique values of a certain column
+	 * @param column The column of interest
+	 * @param parens Whether or not to remove parenthetical values
+	 * @return A String array of unique values in that column
+	 */
+	public String[] getAll(Column column, boolean parens) {
+		String query = "SELECT " + column.key + " FROM museum_db";
+		String[] results = runQuery(query, column, true);
+		
+		if (parens) {
+			results = removeParens(results);
+			//Entries were unique before parens were removed
+			//Now, we're not so sure
+			results = removeDupes(results);
+		}
+		
+		return results;
 	}
 	
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("paintings.db");
-		String[] output = reader.getCultures();//reader.getCulture(Column.ARTIST.key, "*");
-		Map<String, String> query = new HashMap<String, String>();
-		query.put(Column.CULTURE.key, "italian");
-		//query.put(Column.CULTURE.key, "Italian");
-		String[] outs = reader.queryDB(Column.ARTIST.key, query);
+		String[] output = reader.getAll(Column.ARTIST, true);
+		Map<Column, String> query = new HashMap<Column, String>();
+		query.put(Column.CULTURE, "italian");
+		//query.put(Column.CULTURE, "Italian");
+		//String[] outs = reader.queryDB(Column.ARTIST, query);
 		System.out.println(Arrays.toString(output));
-		System.out.println(Arrays.toString(outs));
+		//System.out.println(Arrays.toString(outs));
 	}
 
 }

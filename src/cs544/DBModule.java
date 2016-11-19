@@ -35,7 +35,7 @@ public class DBModule implements Module{
 	public void start() {
 		reader = new SqliteReader("paintings.db");
 		
-		cultures = reader.getCultures();
+		cultures = reader.getAll(Column.CULTURE, true);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class DBModule implements Module{
 			String culture = state.queryProb("NameOfCulture").getBest().toString().trim();
 			culture = culture.toLowerCase();
 			culture = culture.substring(0, 1).toUpperCase() + culture.substring(1);
-			String[] artists = reader.getArtist(Column.CULTURE.key, culture);
+			String[] artists = reader.getArtist(Column.CULTURE, culture);
 			system.addContent("Artists", Arrays.toString(artists));
 			String output = culture + ", eh? Well here's a list of artists:\n";
 			
