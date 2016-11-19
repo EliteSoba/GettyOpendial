@@ -1,12 +1,13 @@
 package cs544;
 import java.util.Arrays;
 import java.util.Collection;
-
-import cs544.SqliteReader.Column;
+import java.util.HashMap;
+import java.util.Map;
 
 import opendial.DialogueState;
 import opendial.DialogueSystem;
 import opendial.modules.Module;
+import cs544.SqliteReader.Column;
 
 
 public class DBModule implements Module{
@@ -14,7 +15,9 @@ public class DBModule implements Module{
 	boolean paused = false;
 	DialogueSystem system;
 	SqliteReader reader;
-	String[] cultures;
+	String[] cultures, artists, media, sizes, titles;
+	String culture, artist, medium, size, title, date, story;
+	Map<Column, String> attributes;
 	
 	@Override
 	public boolean isRunning() {
@@ -36,6 +39,30 @@ public class DBModule implements Module{
 		reader = new SqliteReader("paintings.db");
 		
 		cultures = reader.getAll(Column.CULTURE, true);
+		attributes = new HashMap<Column, String>();
+	}
+	
+	/**
+	 * Combines elements of a list into a single String
+	 * @param list The list to join
+	 * @param joiner How to separate each element
+	 * @return The combined String, with elements separated by joiners
+	 */
+	public static String join(String[] list, String joiner) {
+		if (list.length == 0) {
+			return "";
+		}
+		if (list.length == 1) {
+			return list[0];
+		}
+		StringBuilder s = new StringBuilder(list[0]);
+		
+		for (int i = 1; i < list.length; ++i) {
+			s.append(joiner);
+			s.append(list[i]);
+		}
+		
+		return s.toString();
 	}
 
 	@Override
@@ -51,17 +78,18 @@ public class DBModule implements Module{
 		if (updatedVars.contains("init")) {
 			system.addContent("Cultures", Arrays.toString(cultures));
 		}
-		if (updatedVars.contains("a_u")) {
-			String action = state.queryProb("a_u").getBest().toString();
-			System.out.println(action);
-			if (action.contains("Reroute")) {
-				//System.out.println(action);
-				//system.addContent("X", "third");
-				//system.addContent("Y", cultures[0]);
-				String floor = state.queryProb("floor").getBest().toString();
-				system.addContent("a_m", "GoTo(" + floor + ")");
-			}
+		
+		if (updatedVars.contains("GetArtists")) {
+			culture = state.queryProb("GetArtists").getBest().toString().trim();
+			attributes.put(Column.CULTURE, culture);
+			artists = reader.getArtist(Column.CULTURE, culture);
+			artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
+			
+			system.addContent("Artists", Arrays.toString(artists));
+			
+			system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", "));
 		}
+		
 		
 		//if (updatedVars.contains("NameOfCultureStatus")) {
 			/*String culture = state.queryProb("NameOfCulture").getBest().toString().trim();

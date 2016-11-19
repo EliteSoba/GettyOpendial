@@ -2,7 +2,7 @@
 <domain>
 	<!-- Dialogue Management -->
 	<model trigger="NameOfCultureStatus,NameOfArtistStatus">
-		<rule>
+		<rule id="NoCS Fill">
 			<case>
 				<condition>
 					<if var="current_step" value="NameOfCulture" />
@@ -11,7 +11,22 @@
 					<if var="NameOfCultureStatus" value="filled" />
 				</condition>
 				<effect util="5">
-					<set var="u_m" value="Culture set to {NameOfCulture}." />
+					<set var="a_m" value="Ground(NameOfCulture, {NameOfCulture})" />
+				</effect>
+			</case>
+		</rule>
+	</model>
+	
+	<model trigger="a_m">
+		<rule id="Ground NoC">
+			<case>
+				<condition>
+					<if var="a_m" value="Ground(NameOfCulture, {NoC})" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Temp confirmation message. Real thing in nlg. {NoC}." />
+					<set var="current_step" value="NameOfArtist" />
+					<set var="GetArtists" value="{NoC}" />
 				</effect>
 			</case>
 		</rule>
