@@ -24,40 +24,40 @@
 			</case>
 		</rule>
 
-		<!-- Extracts paintings based on painter  -->
+		<!-- Extracts paintings based on artist  -->
 		<rule>
 			<case>
 				<condition>
-					<if var="Painter" relation="in"
-						value="[Alessandro Magnasco, Francesco Solimena, Giovanni Girolamo Savoldo]" /> <!-- GetPainters_full() -->
-					<if var="u_u" relation="contains" value=" * {Painter} * " />
+					<if var="Artist" relation="in"
+						value="[Alessandro Magnasco, Francesco Solimena, Giovanni Girolamo Savoldo]" /> <!-- GetArtists_full() -->
+					<if var="u_u" relation="contains" value=" * {Artist} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetPainter({Painter})" exclusive="false"/>
+					<set var="a_u" value="SetArtist({Artist})" exclusive="false"/>
 				</effect>
 			</case>
             <case>
 				<condition>
-					<if var="Painter" relation="in"
-						value="[Magnasco, Solimena, Savoldo]" /> <!-- GetPainters_last() -->
-					<if var="u_u" relation="contains" value=" * {Painter} * " />
+					<if var="Artist" relation="in"
+						value="[Magnasco, Solimena, Savoldo]" /> <!-- GetArtists_last() -->
+					<if var="u_u" relation="contains" value=" * {Artist} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetPainter({Painter})" exclusive="false"/>
+					<set var="a_u" value="SetArtist({Artist})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
 
-		<!-- Extracts paintings based on the material.  -->
+		<!-- Extracts paintings based on the medium.  -->
 		<rule>
 			<case>
 				<condition>
-					<if var="Material" relation="in"
-						value="[Oil, water]" /> <!-- GetMaterials() -->
-					<if var="u_u" relation="contains" value=" * {Material} * " />
+					<if var="Medium" relation="in"
+						value="[Oil, water]" /> <!-- GetMedium() -->
+					<if var="u_u" relation="contains" value=" * {Medium} * " />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetMaterial({Material})" exclusive="false"/>
+					<set var="a_u" value="SetMedium({Medium})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -99,8 +99,8 @@
 	
 	
 	<model trigger="a_u">
-		<!-- This model take the dialogue act fom the user and uses it to fill the corresponding
-	  slots (departure, destination, flight dates, number of tickets, etc.). -->
+		<!-- This model take the dialogue act from the user and uses it to fill the corresponding
+	  slots (culture, artist, medium, size, etc.). -->
 	  
 	  
 		<!-- Fills the slots in accordance with the information in the dialogue act -->
@@ -112,6 +112,7 @@
 				</condition>
 				<effect>
 					<set var="{current_step}" value="{Culture}" />
+					<set var="NameOfCultureStatus" value="filled" />
 				</effect>
 			</case>
 			<case>
@@ -125,11 +126,11 @@
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfMaterial" />
-					<if var="a_u" relation="contains" value="SetMaterial({Material})" />
+					<if var="current_step" value="NameOfMedium" />
+					<if var="a_u" relation="contains" value="SetMedium({Medium})" />
 				</condition>
 				<effect>
-					<set var="{current_step}" value="{Material}" />
+					<set var="{current_step}" value="{Medium}" />
 				</effect>
 			</case>
 		</rule>
