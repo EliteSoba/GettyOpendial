@@ -158,7 +158,7 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("NameOfCulture", results[0]);
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
+				system.addContent("a_m", "Ground(NameOfCulture)");
 			}
 			else {
 				//The only time we get here on culture is the one "French or German" and all the "Italian (...)"s
@@ -174,7 +174,7 @@ public class DBModule implements Module{
 				system.addContent("NameOfCulture", results[0]);
 				//system.addContent("NameOfCultureStatus", "tentative");
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
+				system.addContent("a_m", "Ground(NameOfCulture)");
 			}
 		}
 		
@@ -207,12 +207,12 @@ public class DBModule implements Module{
 				system.addContent("a_m", "AskRepeat");
 			}
 			else if (results.length == 1) {
-				system.addContent("NameOfArtist", results[0]);
+				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
 				system.addContent("NameOfArtistStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfArtist, " + results[0] + ")");
+				system.addContent("a_m", "Ground(NameOfArtist)");
 			}
 			else {
-				system.addContent("NameOfArtist", results[0]);
+				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
 				system.addContent("NameOfArtistStatus", "tentative");
 			}
 		}
@@ -249,7 +249,7 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("TitleOfArtwork", results[0]);
 				system.addContent("TitleOfArtworkStatus", "confirmed");
-				system.addContent("a_m", "Ground(TitleOfArtwork, " + results[0] + ")");
+				system.addContent("a_m", "Ground(TitleOfArtwork)");
 			}
 			else {
 				system.addContent("TitleOfArtwork", results[0]);

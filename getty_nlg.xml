@@ -2,6 +2,17 @@
 <domain>
 	<!-- Natural language generation models. -->
 	<model trigger="a_m">
+		<rule id="Confirm Artist">
+			<case>
+				<condition>
+					<if var="a_m" value="Confirm(NameOfArtist, {NoA})" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="I'm sorry, but you weren't very clear there. Were you asking about {NoA}?" />
+				</effect>
+			</case>
+		</rule>
+		
 		<rule id="Culture AskRepeat">
 			<case>
 				<condition>

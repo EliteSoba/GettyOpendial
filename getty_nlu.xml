@@ -146,7 +146,7 @@
 	  
 	  
 		<!-- Fills the slots in accordance with the information in the dialogue act -->
-		<rule>
+		<rule id="Slotfilling">
 			<case>
 				<condition>
 					<if var="current_step" value="NameOfCulture" />
@@ -184,8 +184,23 @@
 				</effect>
 			</case>
 		</rule>
+		<rule id="Confirmations">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Confirm" />
+				</condition>
+				<condition>
+					<if var="a_m" value="Confirm(NameOfArtist, {NoA})" />
+				</condition>
+				<effect>
+					<set var="NameOfArtistStatus" value="confirmed" />
+					<set var="NameOfArtist" value="{NoA}" />
+					<set var="a_m" value="Ground(NameOfArtist)" />
+				</effect>
+			</case>
+		</rule>
 		<!-- I just thought it'd be nice to separate the explaining step from the slot filling -->
-		<rule>
+		<rule id="Explanations">
 			<case>
 				<condition>
 					<if var="a_u" relation="contains" value="Explain({Category})" />
