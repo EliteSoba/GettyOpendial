@@ -20,6 +20,7 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -32,6 +33,7 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Artists})">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -60,6 +62,7 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
 					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -221,7 +224,18 @@
 				</effect>
 			</case>
 		</rule>
-
+		
+		<!-- If we get other, let's just do AskRepeat, I guess -->
+		<rule id="AskRepeat">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Other" />
+				</condition>
+				<effect>
+					<set var="AskRepeat" value="AskRepeat" />
+				</effect>
+			</case>
+		</rule>
 
 	</model>
 	

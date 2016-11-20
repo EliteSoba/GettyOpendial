@@ -20,8 +20,6 @@
 			<case>
 				<condition>
 					<if var="NameOfArtistStatus" value="tentative" relation="="/>
-				</condition>
-				<condition>
 					<if var="current_step" value="NameOfArtist" />
 				</condition>
 				<!-- The cooler thing would probably be to set the confidence = 1/len(results) in DBModule -->
@@ -34,8 +32,6 @@
 			<case>
 				<condition>
 					<if var="TitleOfArtworkStatus" value="tentative" relation="="/>
-				</condition>
-				<condition>
 					<if var="current_step" value="TitleOfArtwork" />
 				</condition>
 				<!-- The cooler thing would probably be to set the confidence = 1/len(results) in DBModule -->

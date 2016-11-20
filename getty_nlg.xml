@@ -57,10 +57,24 @@
 				</effect>
 			</case>
 		</rule>
+		<rule id="Artist AskRepeat">
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeatArist" />
+				</condition>
+				<effect util="1">
+					<!-- This flag is specific to when ResolveArtist fails, which only happens when multiple artists are input in one utterance -->
+					<set var="u_m" value="You might've jumbled up your words a bit, so I couldn't quite catch with artist you wanted. Mind trying again?" />
+				</effect>
+			</case>
+		</rule>
+	</model>
+	
+	<model trigger="AskRepeat">
 		<rule id="Basic AskRepeat">
 			<case>
 				<condition>
-					<if var="a_m" value="AskRepeat" />
+					<if var="AskRepeat" value="AskRepeat" />
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="I'm sorry, could you repeat that for me?" />

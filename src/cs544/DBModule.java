@@ -204,7 +204,7 @@ public class DBModule implements Module{
 			
 			//No results. AskRepeat
 			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
-				system.addContent("a_m", "AskRepeat");
+				system.addContent("a_m", "AskRepeatArtist");
 			}
 			else if (results.length == 1) {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
