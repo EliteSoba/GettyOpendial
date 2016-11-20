@@ -349,7 +349,6 @@ public class DBModule implements Module{
 				system.addContent("TitleOfArtworkState", "empty");
 				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: " + join(titles, "; ") + ".");
 			}
-			
 			else if ("TitleOfArtwork".equalsIgnoreCase(curStep)) {
 				attributes.remove(Column.ARTIST);
 				system.addContent("current_step", "NameOfArtist");
@@ -358,7 +357,16 @@ public class DBModule implements Module{
 				system.addContent("u_m", "Well then. Any other artists you'd like to look at? In case you forgot, here's a list of "
 						+ culture + " ones: " + join(artists, ", ") + ".");
 			}
-			
+			else if ("NameOfArtist".equalsIgnoreCase(curStep)) {
+				attributes.remove(Column.CULTURE);
+				system.addContent("current_step", "NameOfCulture");
+				system.addContent("NameOfCulture", "None");
+				system.addContent("NameOfCultureStatus", "empty");
+				system.addContent("u_m", "So which cultures do you want to explore? You can choose " + join(cultures, ", ") + ".");
+			}
+			else {
+				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward form here!");
+			}
 		}
 		
 	}
