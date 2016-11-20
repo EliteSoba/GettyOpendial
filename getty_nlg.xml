@@ -75,6 +75,15 @@
 			<case>
 				<condition>
 					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_step" value="NameOfCulture" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="I'm not sure you stated a culture there. Or at least not one that's represented here. In case you're wondering, the cultures we have are: {CulturesPretty}." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="I'm sorry, could you repeat that for me?" />

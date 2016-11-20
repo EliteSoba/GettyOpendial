@@ -141,6 +141,7 @@ public class DBModule implements Module{
 		
 		if (updatedVars.contains("init")) {
 			system.addContent("Cultures", Arrays.toString(cultures));
+			system.addContent("CulturesPretty", join(cultures, ", "));
 		}
 		
 		if (updatedVars.contains("ResolveCulture")) {
