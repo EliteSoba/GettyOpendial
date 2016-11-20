@@ -126,6 +126,18 @@
 				</effect>
 			</case>
 		</rule>
+		
+		<!-- Go back a level/undo -->
+		<rule>
+			<case>
+				<condition>
+					<if var="u_u" relation="contains" value="(undo|back|done)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="GoBack()" />
+				</effect>
+			</case>
+		</rule>
 
 		<!-- Rule of lower priority that associates the dialogue act to "Other"
 		    if nothing else is recognised. -->
@@ -221,6 +233,18 @@
 				</condition>
 				<effect>
 					<set var="Lookup" value="{Category}" />
+				</effect>
+			</case>
+		</rule>
+		
+		<!-- Go back action -->
+		<rule id="GoBack">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="GoBack" />
+				</condition>
+				<effect>
+					<set var="GoBack" value="{current_step}" />
 				</effect>
 			</case>
 		</rule>

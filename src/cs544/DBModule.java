@@ -338,6 +338,19 @@ public class DBModule implements Module{
 			}
 		}
 		
+		if (updatedVars.contains("GoBack")) {
+			String curStep = state.queryProb("GoBack").getBest().toString().trim();
+			
+			if ("Explain".equalsIgnoreCase(curStep)) {
+				attributes.remove(Column.TITLE);
+				system.addContent("current_step", "TitleOfArtwork");
+				system.addContent("TitleOfArtwork", "None");
+				system.addContent("TitleOfArtworkState", "empty");
+				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: " + join(titles, "; ") + ".");
+			}
+			
+		}
+		
 	}
 
 }
