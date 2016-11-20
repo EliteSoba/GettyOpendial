@@ -1,0 +1,349 @@
+Interactions with a_u
+Still to do:
+	Handle wildcard authors/titles
+	Group dimensions into big/med/small
+	Maybe way to skip steps (Immediately go into Manet instead of French -> Manet)
+	France -> French, etc. would be pretty cool
+
+
+Trigger - a_u
+	Rule SetCulture
+		Only Case
+			Conditions
+				a_u = SetCulture({X})
+				current_step = NameOfCulture
+			Effect
+				NoC = {X}
+				NoCS = filled
+	Rule SetArtist
+		Only Case
+			Conditions
+				a_u = SetArtist({X})
+				current_step = NameOfArtist
+			Effect
+				NoA = {X}
+				NoAS = filled
+	Rule SetMedium
+		Only Case
+			Conditions
+				a_u = SetMedium({X})
+				current_step = NameOfMedium
+			Effect
+				NoM = {X}
+				NoMS = filled
+	Rule SetSize
+		Only Case
+			Conditions
+				a_u = SetSize({X})
+				current_step = SizeOfArt
+			Effect
+				SoA = {X}
+				SoAS = filled
+	Rule SetTitle
+		Only Case
+			Conditions
+				a_u = SetTitle({X})
+				current_step = NameOfArt
+			Effect
+				Title = {X}
+				TitleS = filled
+	Rule GiveDate
+		Only Case
+			Conditions
+				a_u = GetDate
+				current_step = Explain
+			Effect
+				#tbh probably very little need to confirm here
+				a_m = ExplainDate
+	Rule GiveStory
+		Only Case
+			Conditions
+				a_u = GetStory
+				current_step = Explain
+			Effect
+				a_m = ExplainStory
+	Rule Back
+		Only Case
+			Conditions
+				a_u = GoBack
+			Effect
+				a_m = GoBack({current_step})
+	Rule Confirm
+		Case NoC
+			Conditions
+				a_u = Confirm
+				a_m = Confirm(NameOfCulture, {Value})
+			Effect
+				a_m = Ground(NameOfCulture, {Value})
+				NoCS = confirmed
+		Case NoA
+			Conditions
+				a_u = Confirm
+				a_m = Confirm(NameOfArtist, {Value})
+			Effect
+				a_m = Ground(NameOfArtist, {Value})
+				NoAS = confirmed
+		Case NoM
+			Conditions
+				a_u = Confirm
+				a_m = Confirm(NameOfMedium, {Value})
+			Effect
+				a_m = Ground(NameOfMedium, {Value})
+				NoMS = confirmed
+		Case SoA
+			Conditions
+				a_u = Confirm
+				a_m = Confirm(SizeOfArt, {Value})
+			Effect
+				a_m = Ground(SizeOfArt, {Value})
+				SoAS = confirmed
+		Case NoA
+			Conditions
+				a_u = Confirm
+				a_m = Confirm(NameOfArt, {Title})
+			Effect
+				a_m = Ground(NameOfArt, {Title})
+				TitleS = confirmed
+	Rule Disconfirm
+		Case NoC
+			Conditions
+				a_u = Disconfirm
+				a_m = Confirm(NameOfCulture, {Value})
+			Effect
+				NameOfCulture = None
+				NoCS = empty
+		Case NoA
+			Conditions
+				a_u = Disconfirm
+				a_m = Confirm(NameOfArtist, {Value})
+			Effect
+				NameOfArtist = None
+				NoAS = empty
+		Case NoM
+			Conditions
+				a_u = Disconfirm
+				a_m = Confirm(NameOfMedium, {Value})
+			Effect
+				NameOfMedium = None
+				NoMS = empty
+		Case SoA
+			Conditions
+				a_u = Disconfirm
+				a_m = Confirm(SizeOfArt, {Value})
+			Effect
+				SizeOfArt = None
+				SoAS = empty
+		Case NoA
+			Conditions
+				a_u = Disconfirm
+				a_m = Confirm(NameOfArt, {Title})
+			Effect
+				NameOfArt = None
+				TitleS = empty
+
+Trigger - NoCS, NoAS, NoMS, SoAS, TitleS
+	Rule NoCS Fill
+		Only Case
+			Conditions
+				NoCS = filled
+				current_step = NameOfCulture
+			Effect
+				a_m = Confirm(NameOfCulture, {NoC})
+				or a_m = Ground(NameOfCulture, {NoC})
+	Rule NoAS Fill
+		Only Case
+			Conditions
+				NoAS = filled
+				current_step = NameOfArtist
+			Effect
+				a_m = Confirm(NameOfArtist, {NoA})
+				or a_m = Ground(NameOfArtist, {NoA})
+	Rule NoMS Fill
+		Only Case
+			Conditions
+				NoMS = filled
+				current_step = NameOfMedium
+			Effect
+				a_m = ConfirmOrGround(NameOfMedium, {NoA})
+	Rule SoAS Fill
+		Only Case
+			Conditions
+				SoAS = filled
+				current_step = SizeOfArt
+			Effect
+				a_m = ConfirmOrGround(SizeOfArt, {SoA})
+	Rule TitleS Fill
+		Only Case
+			Conditions
+				TitleS = filled
+				current_step = NameOfArt
+			Effect
+				a_m = ConfirmOrGround(NameOfArt, {Title})
+	Rule Default
+		Only Case
+			Conditions
+				a_u != None
+			Effect
+				a_m = AskRepeat
+
+Trigger - a_m
+	Rule Grounding
+		Case NoC
+			Conditions
+				a_m = Ground(NameOfCulture, {Value})
+			Effect
+				u_m = Confirmation Message
+				NameOfCulture = {Value}
+				current_step = NameOfArtist
+				GetArtists = {Value}
+		Case NoA
+			Conditions
+				a_m = Ground(NameOfArtist, {Value})
+			Effect
+				u_m = Confirmation Message
+				NameOfArtist = {Value}
+				current_step = NameOfMedium
+				GetMedium = {Value}
+		Case NoM
+			Conditions
+				a_m = Ground(NameOfMedium, {Value})
+			Effect
+				u_m = Confirmation Message
+				NameOfMedium = {Value}
+				current_step = SizeOfArt
+				GetSizes = {Medium}
+		Case SoA
+			Conditions
+				a_m = Ground(SizeOfArt, {Value})
+			Effect
+				u_m = Confirmation Message
+				SizeOfArt = {Value}
+				current_step = NameOfArt
+				GetTitles = {Size}
+		Case NoA
+			Conditions
+				a_m = Ground(NameOfArt, {Value})
+			Effect
+				u_m = Confirmation Message
+				Title = {Value}
+				current_step = Explain
+				GetDetails = {Title}
+
+Module:
+Map<Column, String> attributes = new Map<Column, String>();
+String culture, artist, medium, size, title, date, story;
+Trigger - GetArtists {
+	culture = state.queryProb("GetArtists").getBest().toString().trim();
+	attributes.put(Column.CULTURE, culture);
+	String[] artists = reader.getArtist(Column.CULTURE, culture);
+	removeDupes(removeParens(artists));
+	//If ever only one, we should be able to skip steps.
+	system.addContent("Artists", Arrays.toString(artists));
+	system.addContent("u_m", "Here is a list of " + culture + " artists we have:" + formatted(artists) + ". Any you're interested in?");
+}
+Trigger - GetMedium {
+	artist = state.queryProb("GetMedium").getBest().toString().trim();
+	attributes.put(Column.ARTIST, artist);
+	String[] media = reader.getMedium(Column.ARTIST, artist);
+	removeDupes(removeParens(media);
+	system.addContent("Media", media);
+	system.addContent("u_m", "Here are the media upon which " + artist + " has worked:" + formatted(media)". What do you want to see?");
+}
+Trigger - GetSizes {
+	medium = state.queryProb("GetSizes").getBest().toString().trim();
+	attributes.put(Column.MEDIUM, medium);
+	String[] sizes = reader.queryDB(Column.DIM, attributes);
+	//TODO: Create way to translate Dimensions into Big/Medium/Small and back
+	translateToBigMediumSmall(sizes);
+	system.addContent("Sizes", sizes);
+	system.addContent("u_m", "So which are you interested in? Big works? Medium ones? Small paintings? (obv. choose applicable subset)")
+}
+Trigger - GetTitles {
+	size = state.queryProb("GetTitles").getBest().toString().trim();
+	attributes.put(Column.DIM, size);
+	String[] titles = reader.queryDB(Column.TITLE, attributes);
+	system.addContent("Titles", titles);
+	system.addContent("u_m", "Here is a list of works that fit your criteria: " + formatted(titles));
+}
+Trigger - GetDetails {
+	title = state.queryProb("GetDetails").getBest().toString().trim();
+	attributes.put(Column.TITLE, title);
+	String[] dates = reader.queryDB(Column.DATE, attributes);
+	String[] stories = reader.queryDB(Column.STORY, attributes);
+	if (dates == null) {
+		date = "Unknown";
+	}
+	else {
+		date = dates[0];
+	}
+	story = stories[0];
+	//system.addContent("Date", date);
+	//system.addContent("Story", story);
+	system.addContent("u_m", "All right. What would you like to know about " + title + "?");
+}
+Trigger - a_m {
+	String action = state.queryProb("a_m").getBest().toString().trim();
+	if (action.contains("ExplainDate")) {
+		if ("Unknown".equals(date) || date == null || date == "") {
+			system.addContent("u_m", "It is currently unknown when this work was made");
+		}
+		else {
+			system.addContent("u_m", "This work is dated to " + date);
+		}
+	}
+	else if (action.contains("ExplainStory")) {
+		if (story == null || story == "") {
+			system.addContent("u_m", "There is no story currently associated with this work");
+		}
+		else {
+			System.addContent("u_m", story);
+		}
+	}
+	else if (action.contains("GoBack")) {
+		if (action.contains("Explain")) {
+			date = null;
+			story = null;
+			title = null;
+			attributes.remove(Column.TITLE);
+			system.addContent("current_step", "NameOfArt");
+			system.addContent("NameOfArt", "None");
+			system.addContent("TitleS", "empty");
+			system.addContent("u_m", "Okay, here are the works that fit your criteria: " + formatted(titles));
+		}
+		else if (action.contains("NameOfArt")) {
+			size = null;
+			attributes.remove(Column.DIM);
+			system.addContent("current_step", "SizeOfArt");
+			system.addContent("SizeOfArt", "None");
+			system.addContent("SoAS", "empty");
+			system.addConent("u_m", "All right. What size image are you looking for? Your choices are " + formatted(sizes));
+		}
+		else if (action.contains("SizeOfArt")) {
+			medium = null;
+			attributes.remove(Column.MEDIUM);
+			system.addContent("current_step", "NameOfMedium");
+			system.addContent("NameOfMedium", "None");
+			system.addContent("NoMS", "empty");
+			system.addContent("u_m", "Sure thing. What kind of media are you interested in out of " + formatted(media));
+		}
+		else if (action.contains("NameOfMedium")) {
+			artist = null;
+			attributes.remove(Column.ARTIST);
+			system.addContent("current_step", "NameOfArtist");
+			system.addContent("NameOfArtist", "None");
+			system.addContent("NoAS", "empty");
+			system.addContent("u_m", "Well then. Any artists in particular you'd like to look at? Your options are: " + formatted(artists));
+		}
+		else if (action.contains("NameOfArtist")) {
+			culture = null;
+			attributes.remove(Column.CULTURE);
+			system.addContent("current_step", "NameOfCulture");
+			system.addContent("NameOfCulture", "None");
+			system.addContent("NoCS", "empty");
+			system.addContent("u_m", "So which cultures do you want to explore? You can choose " + formatted(cultures));
+		}
+		else {
+			system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
+		}
+	}
+}

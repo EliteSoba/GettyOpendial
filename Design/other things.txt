@@ -1,0 +1,37 @@
+Ideas:
+	If u_u contains an artist string, store the entire u_u
+	scan u_u word by word for any relevant artist words
+	run db search using all the relevant words
+	
+	separate artists into first and last names
+	find last name in u_u
+	find first name * last name in uu
+	use both or one
+	or maybe just separately find last name and first name in u_u
+	
+	
+	
+	
+	
+	
+Size:
+	Not relevant now because just skipping, but
+	Pull size + relevant column (titles after artist, ex. artist if done raw or maybe after culture)
+	calculate area (or i guess volume xd) and make tuples of area and relevant data
+	sort by area
+	1 <= small <= 3600 <= medium <= 10000 <= large
+	cut relevant section out (i guess you don't have to sort by area tbh. O(n) for brute force, O(log(n)) for :effort: binary search on sorted)
+	congrats you now have the data you want
+	ex:
+		if lots of works by artists so this becomes actually valuable
+		figure out size choices for that artist (subset of {small, medium, large})
+		pair sizes with titles
+		from user prompt, extract relevant tuples
+		don't have to query db again, just provide the tuples
+	ex2:
+		starting from beginning, i dont want cultures just give me large paintings
+		or maybe even i want medium paintings from italy
+		figure out size choices or whatever
+		pair sizes with artists (maybe even titles if culture provided)
+		user action
+		now we have artists or titles to provide user with
