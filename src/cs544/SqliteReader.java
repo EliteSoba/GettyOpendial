@@ -262,9 +262,10 @@ public class SqliteReader {
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("getty.db");
 		
-		String[] output = reader.getAll(Column.TITLE, false);
+		String[] output = reader.queryDB(Column.DATE, Column.TITLE, "Jeanne", true, true);
 		output = DBModule.split(output, " ");
 		System.out.println(Arrays.toString(output));
+		System.out.println(output[0].equals("null"));
 //		output = reader.getAll(Column.CULTURE, true);
 //		System.out.println(Arrays.toString(output));
 //		output = reader.getAll(Column.DATE, true);

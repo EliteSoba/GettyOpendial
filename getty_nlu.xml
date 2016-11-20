@@ -15,6 +15,9 @@
 		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
 		<rule>
 			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
 				</effect>
@@ -25,6 +28,7 @@
 		<rule>
 			<case>
 				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Artists})">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
@@ -51,8 +55,51 @@
 		<!-- Time to get the title -->
 		<rule>
 			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
 					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
+		
+		<!-- Get information about the work -->
+		<rule>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(age|old|year|when|how long)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Date)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(big|large|size|dimensions|small)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Size)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(why|story|meaning|idea|motivation|reason)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Story)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(medium|made on|canvas|panel|oil|painted on|paint|how * made)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Medium)" />
 				</effect>
 			</case>
 		</rule>
@@ -134,6 +181,17 @@
 				</condition>
 				<effect>
 					<set var="ResolveTitle" value="{Title}" />
+				</effect>
+			</case>
+		</rule>
+		<!-- I just thought it'd be nice to separate the explaining step from the slot filling -->
+		<rule>
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Explain({Category})" />
+				</condition>
+				<effect>
+					<set var="Lookup" value="{Category}" />
 				</effect>
 			</case>
 		</rule>

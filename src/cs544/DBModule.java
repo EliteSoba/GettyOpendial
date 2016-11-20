@@ -1,6 +1,7 @@
 package cs544;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class DBModule implements Module{
 	boolean paused = false;
 	DialogueSystem system;
 	SqliteReader reader;
-	String[] cultures, artists, media, sizes, titles;
+	String[] cultures, artists, media, sizes, titles, holder;
 	String culture, artist, medium, size, title, date, story;
 	Map<Column, String[]> attributes;
 	
@@ -128,6 +129,9 @@ public class DBModule implements Module{
 		}
 		System.out.println();
 		
+		//Note to self: Not a big fan of all these strings.
+		//Should probably make an enum at the top or something
+		
 		if (updatedVars.contains("init")) {
 			system.addContent("Cultures", Arrays.toString(cultures));
 		}
@@ -141,7 +145,7 @@ public class DBModule implements Module{
 			String[] results = reader.queryDB(Column.CULTURE, query, true, true);
 			
 			//No results. AskRepeat
-			if (results == null || results.length == 0) {
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
 				system.addContent("a_m", "AskRepeatCulture");
 			}
 			else if (results.length == 1) {
@@ -150,10 +154,18 @@ public class DBModule implements Module{
 				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
 			}
 			else {
-				system.addContent("NameOfCulture", results[0]);
-				//system.addContent("NameOfCultureStatus", "tentative");
 				//The only time we get here on culture is the one "French or German" and all the "Italian (...)"s
 				//In which case, "French", "German", or "Italian" are all fine
+				//Sort by length. Ensures we get "French", "German", or "Italian"
+				Arrays.sort(results, new Comparator<String>() {
+					@Override
+					public int compare(String arg0, String arg1) {
+						return arg0.length() - arg1.length();
+					}
+					
+				});
+				system.addContent("NameOfCulture", results[0]);
+				//system.addContent("NameOfCultureStatus", "tentative");
 				system.addContent("NameOfCultureStatus", "confirmed");
 				system.addContent("a_m", "Ground(NameOfCulture, " + results[0] + ")");
 			}
@@ -168,7 +180,7 @@ public class DBModule implements Module{
 				
 				system.addContent("Artists", Arrays.toString(split(artists, " ")));
 				
-				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", "));
+				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", ") + ".");
 			}
 			else {
 				system.addContent("u_m", "Oops, we don't have any works by " + culture + " artists!");
@@ -177,7 +189,6 @@ public class DBModule implements Module{
 		
 		if (updatedVars.contains("ResolveArtist")) {
 			String[] arts = state.queryProb("ResolveArtist").getBest().toString().trim().split("#");
-			//attributes.put(Column.CULTURE, new String[]{culture});
 			Map<Column, String[]> query = new HashMap<Column, String[]>();
 			query.putAll(attributes);
 			query.put(Column.ARTIST, arts);
@@ -185,7 +196,7 @@ public class DBModule implements Module{
 			String[] results = reader.queryDB(Column.ARTIST, query, true, true);
 			
 			//No results. AskRepeat
-			if (results == null || results.length == 0) {
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
 				system.addContent("a_m", "AskRepeat");
 			}
 			else if (results.length == 1) {
@@ -207,7 +218,7 @@ public class DBModule implements Module{
 			if (titles != null) {
 				system.addContent("Titles", Arrays.toString(split(titles, " ")));
 				
-				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; "));
+				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; ") + ".");
 			}
 			else {
 				system.addContent("u_m", "Oops, we don't seem to have any works by that artist!");
@@ -222,8 +233,10 @@ public class DBModule implements Module{
 			
 			String[] results = reader.queryDB(Column.TITLE, query, true, true);
 			
+			//Right now it seems 
+			
 			//No results. AskRepeat
-			if (results == null || results.length == 0) {
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
 				system.addContent("a_m", "AskRepeat");
 			}
 			else if (results.length == 1) {
@@ -237,28 +250,85 @@ public class DBModule implements Module{
 			}
 		}
 		
-		
-		
-		
-		//if (updatedVars.contains("NameOfCultureStatus")) {
-			/*String culture = state.queryProb("NameOfCulture").getBest().toString().trim();
-			culture = culture.toLowerCase();
-			culture = culture.substring(0, 1).toUpperCase() + culture.substring(1);
-			String[] artists = reader.getArtist(Column.CULTURE, culture);
-			system.addContent("Artists", Arrays.toString(artists));
-			/*String output = culture + ", eh? Well here's a list of artists:\n";
+		if (updatedVars.contains("GetData")) {
+			title = state.queryProb("GetData").getBest().toString().trim();
+			attributes.put(Column.TITLE, new String[]{title});
 			
-			for (String artist : artists) {
-				if (artist.indexOf('(') != -1) {
-					output += artist.substring(0, artist.indexOf('(')).trim() + ", ";
+			//Sanity check
+			holder = reader.queryDB(Column.TITLE, attributes, true, false);
+			
+			if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+				//Uh oh no matches...
+				system.addContent("u_m", "Oops, something went wrong! We can't seem to find any paintings like that!");
+			}
+			else {
+				if (holder.length > 1){
+					System.out.println("Warning. Got multiple matches given filters.");
+				}
+				title = holder[0];
+				system.addContent("u_m", "All right, what would you like to know about " + title + "?");
+			}
+		}
+		
+		if (updatedVars.contains("Lookup")) {
+			String category = state.queryProb("Lookup").getBest().toString().trim();
+			if ("Date".equals(category)) {
+				holder = reader.queryDB(Column.DATE, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we currently don't know when this work is dated to.");
 				}
 				else {
-					output += artist.trim();
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					date = holder[0];
+					system.addContent("u_m", "This work is dated to " + date);
 				}
 			}
-			
-			system.addContent("u_m", output);*/
-		//}
+			else if ("Size".equals(category)) {
+				holder = reader.queryDB(Column.DIM, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we don't have the measurements recorded.");
+				}
+				else {
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					size = holder[0];
+					system.addContent("u_m", "The dimensions of this work are " + size);
+				}
+			}
+			else if ("Story".equals(category)) {
+				holder = reader.queryDB(Column.STORY, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we don't have any details about the story of the work.");
+				}
+				else {
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					story = holder[0];
+					system.addContent("u_m", story);
+				}
+			}
+			else if ("Medium".equals(category)) {
+				holder = reader.queryDB(Column.MEDIUM, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we don't have any details about the medium of the work.");
+				}
+				else {
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					medium = holder[0];
+					system.addContent("u_m", "This work was created using " + medium);
+				}
+			}
+		}
 		
 	}
 
