@@ -5,10 +5,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class to interface with the sqlite db
+ * @author Tobias Lee
+ *
+ */
 public class SqliteReader {
 
 	Connection connection;
@@ -31,6 +34,10 @@ public class SqliteReader {
 		}
 	}
 	
+	/**
+	 * Constructor. Requires database to be in src folder
+	 * @param db The name of the database to connect to
+	 */
 	public SqliteReader(String db) {
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -260,24 +267,24 @@ public class SqliteReader {
 	}
 	
 	public static void main(String[] args) {
-		SqliteReader reader = new SqliteReader("getty.db");
+		/*SqliteReader reader = new SqliteReader("getty.db");
 		
 		String[] output = reader.queryDB(Column.DATE, Column.TITLE, "Jeanne", true, true);
 		output = DBModule.split(output, " ");
 		System.out.println(Arrays.toString(output));
 		System.out.println(output[0].equals("null"));
-//		output = reader.getAll(Column.CULTURE, true);
-//		System.out.println(Arrays.toString(output));
-//		output = reader.getAll(Column.DATE, true);
-//		System.out.println(Arrays.toString(output));
-//		output = reader.getAll(Column.MEDIUM, true);
-//		System.out.println(Arrays.toString(output));
-//		output = reader.getAll(Column.DIM, true);
-//		System.out.println(Arrays.toString(output));
-//		output = reader.getAll(Column.STORY, true);
-//		System.out.println(Arrays.toString(output));
-//		output = reader.getAll(Column.ARTIST, true);
-//		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.CULTURE, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.DATE, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.MEDIUM, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.DIM, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.STORY, true);
+		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.ARTIST, true);
+		System.out.println(Arrays.toString(output));
 		Map<Column, String[]> query = new HashMap<Column, String[]>();
 		query.put(Column.CULTURE, new String[]{""});
 		String[] outs = reader.queryDB(Column.DIM, query, true, true);
@@ -292,16 +299,16 @@ public class SqliteReader {
 					total *= Double.parseDouble(i);
 				}
 			}
-			//System.out.println(s + ": " + total);
+			System.out.println(s + ": " + total);
 			totals[j++] = total;
 		}
 		
 		Arrays.sort(totals);
 		
-		//Sizes: 1 <= Small <= 3600 <= Medium <= 10000 <= Large
+		Sizes: 1 <= Small <= 3600 <= Medium <= 10000 <= Large
 		System.out.println(Arrays.toString(totals));
-		//System.out.println(Arrays.toString(output));
-		//System.out.println(Arrays.toString(outs));
+		System.out.println(Arrays.toString(output));
+		System.out.println(Arrays.toString(outs));*/
 	}
 
 }

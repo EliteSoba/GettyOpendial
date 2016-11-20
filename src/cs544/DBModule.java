@@ -12,7 +12,14 @@ import opendial.DialogueSystem;
 import opendial.modules.Module;
 import cs544.SqliteReader.Column;
 
-
+/**
+ * Module to interface with the database, extracting relevant information
+ * based on the triggers. Acts as sort of a combination between dm and nlg.
+ * It does a lot of nlg because for some reason the opendial xmls have some
+ * trouble dealing with variables with paranthetical values (ex: Jeanne (Spring))
+ * @author Tobias Lee
+ *
+ */
 public class DBModule implements Module{
 
 	boolean paused = false;
