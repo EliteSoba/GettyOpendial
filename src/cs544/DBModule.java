@@ -220,7 +220,8 @@ public class DBModule implements Module{
 		
 		if (updatedVars.contains("GetTitles")) {
 			artist = state.queryProb("GetTitles").getBest().toString().trim();
-			attributes.put(Column.ARTIST, new String[]{artist});
+			//Opendial works poorly with double spaces, which our database has plenty of
+			attributes.put(Column.ARTIST, artist.split(" "));
 			titles = reader.queryDB(Column.TITLE, attributes, true, true);
 			
 			if (titles != null) {
@@ -347,6 +348,15 @@ public class DBModule implements Module{
 				system.addContent("TitleOfArtwork", "None");
 				system.addContent("TitleOfArtworkState", "empty");
 				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: " + join(titles, "; ") + ".");
+			}
+			
+			else if ("TitleOfArtwork".equalsIgnoreCase(curStep)) {
+				attributes.remove(Column.ARTIST);
+				system.addContent("current_step", "NameOfArtist");
+				system.addContent("NameOfArtist", "None");
+				system.addContent("NameOfArtistStatus", "empty");
+				system.addContent("u_m", "Well then. Any other artists you'd like to look at? In case you forgot, here's a list of "
+						+ culture + " ones: " + join(artists, ", ") + ".");
 			}
 			
 		}

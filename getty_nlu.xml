@@ -131,7 +131,7 @@
 		<rule>
 			<case>
 				<condition>
-					<if var="u_u" relation="contains" value="(undo|back|done)" />
+					<if var="u_u" relation="contains" value="(undo|back|done|never mind)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="GoBack()" />

@@ -302,16 +302,19 @@ public class SqliteReader {
 			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + ", DIMENSIONS, SIZE(DIMENSIONS) as size FROM PAINTINGS WHERE size < 3600 order by size");
 			
 			while (rs.next()) {
-				System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
+				//System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
 			}
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		
-		String[] output = reader.queryDB(Column.DATE, Column.TITLE, "Jeanne", true, true);
-		output = DBModule.split(output, " ");
+		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
+		attributes.put(Column.CULTURE, new String[]{"French"});
+		attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
+		String[] output = reader.queryDB(Column.TITLE, attributes, true, true);
+		//output = DBModule.split(output, " ");
+		System.out.println(Arrays.toString(output));
 		/*System.out.println(Arrays.toString(output));
 		System.out.println(output[0].equals("null"));
 		output = reader.getAll(Column.CULTURE, true);
