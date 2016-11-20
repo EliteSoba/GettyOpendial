@@ -30,6 +30,24 @@
 				</effect>
 			</case>
 		</rule>
+		<rule id="ToAS Fill">
+			<case>
+				<condition>
+					<if var="TitleOfArtworkStatus" value="tentative" relation="="/>
+				</condition>
+				<condition>
+					<if var="current_step" value="TitleOfArtwork" />
+				</condition>
+				<!-- The cooler thing would probably be to set the confidence = 1/len(results) in DBModule -->
+				<!-- The coolest thing would be to query using ORs for the keywords instead of ANDs, and keep a count of which results pop up the most for the different keywords. Then we choose the result that matched the most frequently using a confidence of some scaling of the occurrence rate -->
+				<!-- For example, Vincent van Gogh would return all the vincents, all the vans, and all the goghs, but van gogh would show up in all three searches whereas the other results would only show up in at most 2. -->
+				<!-- Say we got Vincent van Gogh 3 times and Jan van Goyen 1 time and Vincent van Fake 2 times. We'd do van Gogh with a much higher confidence than the other results -->
+				<!-- But if we queried for Jan Brueghel we'd get Jan Brueghel the Elder and Jan Brueghel the Younger each with 2 occurrences so the confidence would be pretty low there. -->
+				<effect util="1">
+					<set var="a_m" value="Confirm(TitleOfArtwork, {TitleOfArtwork})" />
+				</effect>
+			</case>
+		</rule>
 	</model>
 	
 	<model trigger="a_m">

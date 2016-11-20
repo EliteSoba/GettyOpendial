@@ -184,18 +184,29 @@
 				</effect>
 			</case>
 		</rule>
-		<rule id="Confirmations">
+		<rule id="Confirmation">
 			<case>
 				<condition>
 					<if var="a_u" relation="contains" value="Confirm" />
-				</condition>
-				<condition>
-					<if var="a_m" value="Confirm(NameOfArtist, {NoA})" />
+					<if var="a_m" value="Confirm({Slot}, {Value})" />
 				</condition>
 				<effect>
-					<set var="NameOfArtistStatus" value="confirmed" />
-					<set var="NameOfArtist" value="{NoA}" />
-					<set var="a_m" value="Ground(NameOfArtist)" />
+					<set var="{Slot}Status" value="confirmed" />
+					<set var="{Slot}" value="{Value}" />
+					<set var="a_m" value="Ground({Slot})" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="Disconfirmation">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<if var="a_m" value="Confirm({Slot}, {Value})" />
+				</condition>
+				<effect>
+					<set var="{Slot}Status" value="empty" />
+					<set var="{Slot}" value="None" />
+					<set var="a_m" value="AskAgain" />
 				</effect>
 			</case>
 		</rule>
