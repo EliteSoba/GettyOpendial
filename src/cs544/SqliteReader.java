@@ -183,13 +183,13 @@ public class SqliteReader {
 				
 				if (key == Column.SIZE) {
 					if (k.equalsIgnoreCase("Big")) {
-						query += "\"" + clean(key.key) + "\" >= 10000";
+						query += key.key + " >= 10000";
 					}
 					else if (k.equalsIgnoreCase("Medium")) {
-						query += "\"" + clean(key.key) + "\" >= 3600 AND \"" + clean(key.key) + "\" < 10000";
+						query += key.key + " >= 3600 AND " + key.key + " < 10000";
 					}
 					else if (k.equalsIgnoreCase("Small")) {
-						query += "\"" + clean(key.key) + "\" < 3600";
+						query += key.key + " < 3600";
 					}
 				}
 				else {
@@ -314,10 +314,10 @@ public class SqliteReader {
 		SqliteReader reader = new SqliteReader("getty.db");
 		
 		try {
-			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + ", DIMENSIONS FROM PAINTINGS WHERE SIZE(DIMENSIONS) < 3600 order by SIZE(DIMENSIONS)");
+			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + " FROM PAINTINGS WHERE SIZE(DIMENSIONS) < 3600 order by SIZE(DIMENSIONS)");
 			
 			while (rs.next()) {
-				System.out.println(rs.getString(1) + "\t" + rs.getString(2));
+				System.out.println(rs.getString(1));
 			}
 			
 		} catch (SQLException e) {

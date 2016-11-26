@@ -55,6 +55,8 @@ public class DBModule implements Module{
 		reader = new SqliteReader("getty.db");
 		
 		cultures = reader.getAll(Column.CULTURE, true);
+		artists = reader.getAll(Column.ARTIST, true);
+		titles = reader.getAll(Column.TITLE, false);
 		attributes = new HashMap<Column, String[]>();
 		queries = new ArrayList<Column>();
 	}
@@ -85,6 +87,7 @@ public class DBModule implements Module{
 	/**
 	 * Splits a list of strings into a larger list of string containing
 	 * all the elements of the list split by the divisor
+	 * Also removes duplicates
 	 * @param list The list of words to split
 	 * @param divisor The sequence to split by
 	 * @return The newly formed list
@@ -139,6 +142,9 @@ public class DBModule implements Module{
 		//I wonder if it'd be better to say artists first even if only very few titles...
 		if (!queries.contains(Column.TITLE)) {
 			titles = reader.queryDB(Column.TITLE, attributes, true, true);
+			//Running list of titles
+			
+			system.addContent("Titles", Arrays.toString(split(titles, " ")));
 			if (titles == null || titles.length == 0) {
 				system.addContent("u_m", "Oh dear, it seems we don't have any paintings that fit your restrictions.");
 				return;
@@ -152,6 +158,8 @@ public class DBModule implements Module{
 			else if (!queries.contains(Column.ARTIST)) {
 				//If we haven't filled in artist yet, we can probably give some artist suggestions
 				artists = reader.queryDB(Column.ARTIST, attributes, true, true);
+				//Running list of artists
+				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
 				if (artists != null && titles.length <= 5) {
 					//Provide list of artists b/c its short
 					system.addContent("u_m", "Cool, we got artists: " + join(artists, "; "));
@@ -193,6 +201,9 @@ public class DBModule implements Module{
 		if (updatedVars.contains("init")) {
 			system.addContent("Cultures", Arrays.toString(cultures));
 			system.addContent("CulturesPretty", join(cultures, ", "));
+			
+			system.addContent("Titles", Arrays.toString(split(titles, " ")));
+			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
 		}
 		
 		if (updatedVars.contains("ResolveCulture")) {
@@ -263,6 +274,7 @@ public class DBModule implements Module{
 		}
 		
 		if (updatedVars.contains("ResolveArtist")) {
+			//To be honest, this is going to be iffy. I'll need a running list of artists/titles throughout the process
 			String[] arts = state.queryProb("ResolveArtist").getBest().toString().trim().split("#");
 			Map<Column, String[]> query = new HashMap<Column, String[]>();
 			query.putAll(attributes);
@@ -277,17 +289,28 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
 				//Let's just always be tentative with artist for fun
+				system.addContent("current_step", "NameOfArtist");
 				system.addContent("NameOfArtistStatus", "tentative");
 				//system.addContent("NameOfArtistStatus", "confirmed");
 				//system.addContent("a_m", "Ground(NameOfArtist)");
 			}
 			else {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
+				system.addContent("current_step", "NameOfArtist");
 				system.addContent("NameOfArtistStatus", "tentative");
 			}
 		}
-		if (updatedVars.contains("GroundArtist")) {
+		if (updatedVars.contains("GroundNameOfArtist")) {
+			//tbh I'm pretty upset at the amount of redundancy in these if blocks but there's not really an elegant solution
+			//Well there is, but it's more trouble than it's worth.
+			artist = state.queryProb("GroundNameOfArtist").getBest().toString().trim();
+			attributes.put(Column.ARTIST, new String[]{artist});
+			queries.add(Column.ARTIST);
 			
+			system.addContent("u_m", "Okay, we'll get you paintings by " + SqliteReader.removeParens(artist));
+			//nextStep will either prompt for title or warn that there are no works
+			//the latter should never happen because an artist with no matching works won't be an option
+			nextStep(state);
 		}
 		
 		if (updatedVars.contains("ResolveTitle")) {
