@@ -128,6 +128,53 @@ public class DBModule implements Module{
 		
 		return arguments;
 	}
+	
+	/**
+	 * From any grounding, give suggestions for the next thing to look into
+	 * @param state DialogueState to provide system content. Perhaps unnecessary if all I do is add u_m
+	 */
+	private void nextStep(DialogueState state) {
+		//We're only making these suggestions if title hasn't been filled in yet
+		//If title has been filled in, uh, we probably shouldn't be here...
+		if (!queries.contains(Column.TITLE)) {
+			titles = reader.queryDB(Column.TITLE, attributes, true, true);
+			if (titles == null || titles.length == 0) {
+				system.addContent("u_m", "Oh dear, it seems we don't have any paintings that fit your restrictions.");
+				return;
+			}
+			else if (titles.length <= 5) {
+				//Provide list of titles b/c its short
+				system.addContent("u_m", "Cool, we got paintings: " + join(titles, "; "));
+				return;
+			}
+			//If we're here, title hasn't been set and we have too many title choices
+			else if (!queries.contains(Column.ARTIST)) {
+				//If we haven't filled in artist yet, we can probably give some artist suggestions
+				artists = reader.queryDB(Column.ARTIST, attributes, true, true);
+				if (artists != null && titles.length <= 5) {
+					//Provide list of artists b/c its short
+					system.addContent("u_m", "Cool, we got artists: " + join(artists, "; "));
+					return;
+				}
+			}
+		}
+		//We fall down here if nothing else worked
+		//Also fix this debug message lol
+		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
+		if (!queries.contains(Column.SIZE)) {
+			message += "you'd like to narrow down your options by size?";
+		}
+		else if (!queries.contains(Column.CULTURE)) {
+			message += "you'd care to restrict your search to only a particular culture?";
+		}
+		else if (!queries.contains(Column.STORY)) {
+			message += "you're looking for a particular subject or theme for your search?";
+		}
+		else if (!queries.contains(Column.MEDIUM)) {
+			message += "you'd be interested in a particular medium?";
+		}
+		system.addContent("u_m", message);
+	}
 
 	@Override
 	public void trigger(DialogueState state, Collection<String> updatedVars) {
@@ -162,7 +209,7 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("NameOfCulture", results[0]);
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfCulture)");
+				system.addContent("a_m", "Ground(Culture,"+results[0]+")");
 			}
 			else {
 				//The only time we get here on culture is the one "French or German" and all the "Italian (...)"s
@@ -178,7 +225,7 @@ public class DBModule implements Module{
 				system.addContent("NameOfCulture", results[0]);
 				//system.addContent("NameOfCultureStatus", "tentative");
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfCulture)");
+				system.addContent("a_m", "Ground(Culture,"+results[0]+")");
 			}
 		}
 		
@@ -188,39 +235,7 @@ public class DBModule implements Module{
 			attributes.put(Column.CULTURE, new String[]{culture});
 			queries.add(Column.CULTURE);
 			
-			//We're only making these suggestions if title hasn't been filled in yet
-			//If title has been filled in, uh, we probably shouldn't be here...
-			if (!queries.contains(Column.TITLE)) {
-				titles = reader.queryDB(Column.TITLE, attributes, true, true);
-				if (titles != null && titles.length <= 5) {
-					//Provide list of titles b/c its short
-					System.out.println("We hit the title block. Cool");
-				}
-				//If we're here, title hasn't been set and we have too many title choices
-				else if (!queries.contains(Column.ARTIST)) {
-					//If we haven't filled in artist yet, we can probably give some artist suggestions
-					artists = reader.queryDB(Column.ARTIST, attributes, true, true);
-					if (artists != null && titles.length <= 5) {
-						//Provide list of artists b/c its short
-						System.out.println("We hit the artist block. Cool");
-					}
-				}
-			}
-			// Eventually we fall down here.
-			String message = "All right, we'll look for " + culture + " paintings, then. There seem to be a lot of these so perhaps ";
-			if (!queries.contains(Column.SIZE)) {
-				message += "you'd like to narrow down your options by size?";
-			}
-			else if (!queries.contains(Column.CULTURE)) {
-				message += "you'd care to restrict your search to only a particular culture?";
-			}
-			else if (!queries.contains(Column.STORY)) {
-				message += "you're looking for a particular subject or theme for your search?";
-			}
-			else if (!queries.contains(Column.MEDIUM)) {
-				message += "you'd be interested in a particular medium?";
-			}
-			system.addContent("u_m", message);
+			nextStep(state);
 		}
 		
 		if (updatedVars.contains("ResolveSize")) {
@@ -232,7 +247,16 @@ public class DBModule implements Module{
 			system.addContent("SizeOfArt", s);
 			//For now, let's just add no uncertainty and we can add confirmations later. The infrastructure is already there
 			system.addContent("SizeOfArtStatus", "confirmed");
-			system.addContent("a_m", "Ground(SizeOfArt)");
+			system.addContent("a_m", "Ground(Size,"+size+")");
+		}
+		
+		if (updatedVars.contains("GroundSize")) {
+			size = state.queryProb("GroundSize").getBest().toString().trim();
+			
+			attributes.put(Column.SIZE, new String[]{size});
+			queries.add(Column.SIZE);
+			
+			nextStep(state);
 		}
 		
 		if (updatedVars.contains("ResolveArtist")) {
