@@ -30,7 +30,8 @@ public class SqliteReader {
 		DATE ("DATE"),
 		MEDIUM ("MEDIUM"),
 		DIM ("DIMENSIONS"),
-		STORY ("STORY");
+		STORY ("STORY"),
+		SIZE ("SIZE(" + DIM.key + ")");
 		
 		public String key;
 		Column(String key) {
@@ -179,12 +180,26 @@ public class SqliteReader {
 				else {
 					first = false;
 				}
-				query += "\"" + clean(key.key);
-				if (like) {
-					query += "\" LIKE \"%" + clean(k) + "%\"";
+				
+				if (key == Column.SIZE) {
+					if (k.equalsIgnoreCase("Big")) {
+						query += "\"" + clean(key.key) + "\" >= 10000";
+					}
+					else if (k.equalsIgnoreCase("Medium")) {
+						query += "\"" + clean(key.key) + "\" >= 3600 AND \"" + clean(key.key) + "\" < 10000";
+					}
+					else if (k.equalsIgnoreCase("Small")) {
+						query += "\"" + clean(key.key) + "\" < 3600";
+					}
 				}
 				else {
-					query += "\" = \"" + clean(k) + "\"";
+					query += "\"" + clean(key.key);
+					if (like) {
+						query += "\" LIKE \"%" + clean(k) + "%\"";
+					}
+					else {
+						query += "\" = \"" + clean(k) + "\"";
+					}
 				}
 			}
 		}
@@ -299,10 +314,10 @@ public class SqliteReader {
 		SqliteReader reader = new SqliteReader("getty.db");
 		
 		try {
-			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + ", DIMENSIONS, SIZE(DIMENSIONS) as size FROM PAINTINGS WHERE size < 3600 order by size");
+			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + ", DIMENSIONS FROM PAINTINGS WHERE SIZE(DIMENSIONS) < 3600 order by SIZE(DIMENSIONS)");
 			
 			while (rs.next()) {
-				//System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
+				System.out.println(rs.getString(1) + "\t" + rs.getString(2));
 			}
 			
 		} catch (SQLException e) {
@@ -310,11 +325,13 @@ public class SqliteReader {
 		}
 		
 		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
-		attributes.put(Column.CULTURE, new String[]{"French"});
-		attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
-		String[] output = reader.queryDB(Column.TITLE, attributes, true, true);
+		attributes.put(Column.CULTURE, new String[]{"netherlandish"});
+		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
+		String[] output = reader.queryDB(Column.DIM, attributes, true, true);
 		//output = DBModule.split(output, " ");
 		System.out.println(Arrays.toString(output));
+		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
+		//System.out.println(Arrays.toString(output));
 		/*System.out.println(Arrays.toString(output));
 		System.out.println(output[0].equals("null"));
 		output = reader.getAll(Column.CULTURE, true);

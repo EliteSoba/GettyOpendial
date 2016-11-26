@@ -24,6 +24,19 @@
 				</effect>
 			</case>
 		</rule>
+		
+		<rule>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="u_u" relation="contains" value="(big|large)" />
+				</condition>
+				<effect>
+					<set var="u_m" value="Quick debug for u_u" />
+					<set var="a_u" value="SetSize(Big)" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
 
 		<!-- Extracts paintings based on artist  -->
 		<rule>
@@ -182,11 +195,11 @@
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="SizeOfArtwork" />
+					<!--if var="current_step" value="SizeOfArtwork" /-->
 					<if var="a_u" relation="contains" value="SetSize({Size})" />
 				</condition>
 				<effect>
-					<set var="{current_step}" value="{Size}" />
+					<set var="ResolveSize" value="{Size}" />
 				</effect>
 			</case>
 			<case>

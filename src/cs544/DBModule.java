@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import cs544.SqliteReader.Column;
 import opendial.DialogueState;
 import opendial.DialogueSystem;
 import opendial.modules.Module;
-import cs544.SqliteReader.Column;
 
 /**
  * Module to interface with the database, extracting relevant information
@@ -25,8 +25,8 @@ public class DBModule implements Module{
 	boolean paused = false;
 	DialogueSystem system;
 	SqliteReader reader;
-	String[] cultures, artists, media, sizes, titles, holder;
-	String culture, artist, medium, size, title, date, story;
+	String[] cultures, artists, media, dims, titles, holder;
+	String culture, artist, medium, size, dim, title, date, story;
 	Map<Column, String[]> attributes;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
@@ -179,6 +179,12 @@ public class DBModule implements Module{
 			}
 		}
 		
+		if (updatedVars.contains("ResolveSize")) {
+			//This one is unfortunately a little less interesting
+			String s = state.queryProb("ResolveSize").getBest().toString().trim();
+			size = s;
+		}
+		
 		if (updatedVars.contains("GetArtists")) {
 			culture = state.queryProb("GetArtists").getBest().toString().trim();
 			attributes.put(Column.CULTURE, new String[]{culture});
@@ -305,8 +311,8 @@ public class DBModule implements Module{
 					if (holder.length > 1){
 						System.out.println("Warning. Got multiple matches given filters.");
 					}
-					size = holder[0];
-					system.addContent("u_m", "The dimensions of this work are " + size);
+					dim = holder[0];
+					system.addContent("u_m", "The dimensions of this work are " + dim);
 				}
 			}
 			else if ("Story".equals(category)) {
