@@ -136,6 +136,7 @@ public class DBModule implements Module{
 	private void nextStep(DialogueState state) {
 		//We're only making these suggestions if title hasn't been filled in yet
 		//If title has been filled in, uh, we probably shouldn't be here...
+		//I wonder if it'd be better to say artists first even if only very few titles...
 		if (!queries.contains(Column.TITLE)) {
 			titles = reader.queryDB(Column.TITLE, attributes, true, true);
 			if (titles == null || titles.length == 0) {
@@ -159,8 +160,8 @@ public class DBModule implements Module{
 			}
 		}
 		//We fall down here if nothing else worked
-		//Also fix this debug message lol
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
+		//Might be worth also putting a list of options for each suggested choice
 		if (!queries.contains(Column.SIZE)) {
 			message += "you'd like to narrow down your options by size?";
 		}
@@ -209,7 +210,7 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("NameOfCulture", results[0]);
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(Culture,"+results[0]+")");
+				system.addContent("a_m", "Ground(NameOfCulture,"+results[0]+")");
 			}
 			else {
 				//The only time we get here on culture is the one "French or German" and all the "Italian (...)"s
@@ -225,16 +226,17 @@ public class DBModule implements Module{
 				system.addContent("NameOfCulture", results[0]);
 				//system.addContent("NameOfCultureStatus", "tentative");
 				system.addContent("NameOfCultureStatus", "confirmed");
-				system.addContent("a_m", "Ground(Culture,"+results[0]+")");
+				system.addContent("a_m", "Ground(NameOfCulture,"+results[0]+")");
 			}
 		}
-		
-		if (updatedVars.contains("GroundCulture")) {
-			culture = state.queryProb("GroundCulture").getBest().toString().trim();
+		if (updatedVars.contains("GroundNameOfCulture")) {
+			culture = state.queryProb("GroundNameOfCulture").getBest().toString().trim();
 			
 			attributes.put(Column.CULTURE, new String[]{culture});
 			queries.add(Column.CULTURE);
 			
+			//Ground with user and ask for next step
+			system.addContent("u_m", "All right, then let's look at " + culture + " paintings.");
 			nextStep(state);
 		}
 		
@@ -247,15 +249,16 @@ public class DBModule implements Module{
 			system.addContent("SizeOfArt", s);
 			//For now, let's just add no uncertainty and we can add confirmations later. The infrastructure is already there
 			system.addContent("SizeOfArtStatus", "confirmed");
-			system.addContent("a_m", "Ground(Size,"+size+")");
+			system.addContent("a_m", "Ground(SizeOfArt,"+size+")");
 		}
-		
-		if (updatedVars.contains("GroundSize")) {
-			size = state.queryProb("GroundSize").getBest().toString().trim();
+		if (updatedVars.contains("GroundSizeOfArt")) {
+			size = state.queryProb("GroundSizeOfArt").getBest().toString().trim();
 			
 			attributes.put(Column.SIZE, new String[]{size});
 			queries.add(Column.SIZE);
-			
+
+			//Ground with user and ask for next step
+			system.addContent("u_m", size + " paintings? Sounds good.");
 			nextStep(state);
 		}
 		
@@ -273,13 +276,18 @@ public class DBModule implements Module{
 			}
 			else if (results.length == 1) {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
-				system.addContent("NameOfArtistStatus", "confirmed");
-				system.addContent("a_m", "Ground(NameOfArtist)");
+				//Let's just always be tentative with artist for fun
+				system.addContent("NameOfArtistStatus", "tentative");
+				//system.addContent("NameOfArtistStatus", "confirmed");
+				//system.addContent("a_m", "Ground(NameOfArtist)");
 			}
 			else {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
 				system.addContent("NameOfArtistStatus", "tentative");
 			}
+		}
+		if (updatedVars.contains("GroundArtist")) {
+			
 		}
 		
 		if (updatedVars.contains("ResolveTitle")) {
@@ -290,7 +298,7 @@ public class DBModule implements Module{
 			
 			String[] results = reader.queryDB(Column.TITLE, query, true, true);
 			
-			//Right now it seems 
+			//Right now it seems - WHAT DOES IT SEEM? WHY DID I CUT OFF THIS COMMENT MIDSENTENCE? WHAT STILL NEEDS WORK HERE?
 			
 			//No results. AskRepeat
 			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
@@ -419,6 +427,8 @@ public class DBModule implements Module{
 			}
 		}
 		
+		//This needs to be updated. Pretty much it should just be popping the last query from the stack
+		//and if we're in explaining go back to slotfilling
 		if (updatedVars.contains("GoBack")) {
 			String curStep = state.queryProb("GoBack").getBest().toString().trim();
 			
