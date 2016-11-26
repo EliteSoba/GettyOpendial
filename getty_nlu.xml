@@ -9,7 +9,40 @@
 	-->
 
 	<model trigger="u_u">
-	  	  
+	  	
+		<!-- Slotfills the size -->
+		<rule>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="u_u" relation="contains" value="(big|large)" />
+				</condition>
+				<effect>
+					<set var="u_m" value="Quick debug for u_u" />
+					<set var="a_u" value="SetSize(Big)" exclusive="false"/>
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="u_u" relation="contains" value="small" />
+				</condition>
+				<effect>
+					<set var="u_m" value="Quick debug for u_u" />
+					<set var="a_u" value="SetSize(Small)" exclusive="false"/>
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
+				</condition>
+				<effect>
+					<set var="u_m" value="Quick debug for u_u" />
+					<set var="a_u" value="SetSize(Medium)" exclusive="false"/>
+				</effect>
+			</case>
+		</rule>
 		<!-- Extracts paintings based on culture  -->
 		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
 		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
@@ -24,19 +57,6 @@
 				</effect>
 			</case>
 		</rule>
-		
-		<rule>
-			<case>
-				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
-					<if var="u_u" relation="contains" value="(big|large)" />
-				</condition>
-				<effect>
-					<set var="u_m" value="Quick debug for u_u" />
-					<set var="a_u" value="SetSize(Big)" exclusive="false"/>
-				</effect>
-			</case>
-		</rule>
 
 		<!-- Extracts paintings based on artist  -->
 		<rule>
@@ -47,22 +67,6 @@
 				<effect prob="FuzzyMatch({u_u},{Artists})">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet" exclusive="false"/>
-				</effect>
-			</case>
-		</rule>
-
-		<!-- Extracts paintings based on the SIZE.  -->
-		<!-- Sorry, but I think size is more interesting than medium here -->
-		<!-- Sorry again, but I don't think this filter is necessary right now. Maybe if we go Culture -> Size -> Artist instead of Culture -> Artist or maybe we can do Size -> Artist or Size -> Culture etc. -->
-		<rule>
-			<case>
-				<condition>
-					<if var="Size" relation="in"
-						value="[Oil, water]" /> <!-- GetMedium() -->
-					<if var="u_u" relation="contains" value=" * {Size} * " />
-				</condition>
-				<effect>
-					<set var="a_u" value="SetSize({Size})" exclusive="false"/>
 				</effect>
 			</case>
 		</rule>
@@ -177,16 +181,18 @@
 		<rule id="Slotfilling">
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfCulture" />
+					<!--if var="current_step" value="NameOfCulture" /-->
 					<if var="a_u" relation="contains" value="SetCulture({Culture})" />
 				</condition>
 				<effect>
 					<set var="ResolveCulture" value="{Culture}" />
+					<!-- It'd be nice to know that this is the step we're confirming/grounding. Not necessary, to be honest -->
+					<set var="current_step" value="NameOfCulture" />
 				</effect>
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfArtist" />
+					<!--if var="current_step" value="NameOfArtist" /-->
 					<if var="a_u" relation="contains" value="SetArtist({Artist})" />
 				</condition>
 				<effect>
@@ -204,7 +210,7 @@
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="TitleOfArtwork" />
+					<!--if var="current_step" value="TitleOfArtwork" /-->
 					<if var="a_u" relation="contains" value="SetTitle({Title})" />
 				</condition>
 				<effect>

@@ -54,8 +54,9 @@
 				</condition>
 				<effect util="1">
 					<!--set var="u_m" value="Temp confirmation message. Real thing in nlg. {NoC}." /-->
-					<set var="current_step" value="NameOfArtist" />
-					<set var="GetArtists" value="{NameOfCulture}" />
+					<set var="GroundCulture" value="{NameOfCulture}" />
+					<!--set var="current_step" value="NameOfArtist" /-->
+					<!--set var="GetArtists" value="{NameOfCulture}" /-->
 				</effect>
 			</case>
 		</rule>

@@ -31,7 +31,7 @@ public class SqliteReader {
 		MEDIUM ("MEDIUM"),
 		DIM ("DIMENSIONS"),
 		STORY ("STORY"),
-		SIZE ("SIZE(" + DIM.key + ")");
+		SIZE ("SIZE(DIMENSIONS)");
 		
 		public String key;
 		Column(String key) {

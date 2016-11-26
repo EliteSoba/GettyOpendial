@@ -1,4 +1,5 @@
 package cs544;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -28,6 +29,7 @@ public class DBModule implements Module{
 	String[] cultures, artists, media, dims, titles, holder;
 	String culture, artist, medium, size, dim, title, date, story;
 	Map<Column, String[]> attributes;
+	ArrayList<Column> queries;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
 			"la", "y", "ter", "and", "by", "workshop", "with", "for", "in", "an", "a", "at", "as", "du", "et", "other", "new",
@@ -54,6 +56,7 @@ public class DBModule implements Module{
 		
 		cultures = reader.getAll(Column.CULTURE, true);
 		attributes = new HashMap<Column, String[]>();
+		queries = new ArrayList<Column>();
 	}
 	
 	/**
@@ -179,26 +182,57 @@ public class DBModule implements Module{
 			}
 		}
 		
+		if (updatedVars.contains("GroundCulture")) {
+			culture = state.queryProb("GroundCulture").getBest().toString().trim();
+			
+			attributes.put(Column.CULTURE, new String[]{culture});
+			queries.add(Column.CULTURE);
+			
+			//We're only making these suggestions if title hasn't been filled in yet
+			//If title has been filled in, uh, we probably shouldn't be here...
+			if (!queries.contains(Column.TITLE)) {
+				titles = reader.queryDB(Column.TITLE, attributes, true, true);
+				if (titles != null && titles.length <= 5) {
+					//Provide list of titles b/c its short
+					System.out.println("We hit the title block. Cool");
+				}
+				//If we're here, title hasn't been set and we have too many title choices
+				else if (!queries.contains(Column.ARTIST)) {
+					//If we haven't filled in artist yet, we can probably give some artist suggestions
+					artists = reader.queryDB(Column.ARTIST, attributes, true, true);
+					if (artists != null && titles.length <= 5) {
+						//Provide list of artists b/c its short
+						System.out.println("We hit the artist block. Cool");
+					}
+				}
+			}
+			// Eventually we fall down here.
+			String message = "All right, we'll look for " + culture + " paintings, then. There seem to be a lot of these so perhaps ";
+			if (!queries.contains(Column.SIZE)) {
+				message += "you'd like to narrow down your options by size?";
+			}
+			else if (!queries.contains(Column.CULTURE)) {
+				message += "you'd care to restrict your search to only a particular culture?";
+			}
+			else if (!queries.contains(Column.STORY)) {
+				message += "you're looking for a particular subject or theme for your search?";
+			}
+			else if (!queries.contains(Column.MEDIUM)) {
+				message += "you'd be interested in a particular medium?";
+			}
+			system.addContent("u_m", message);
+		}
+		
 		if (updatedVars.contains("ResolveSize")) {
 			//This one is unfortunately a little less interesting
 			String s = state.queryProb("ResolveSize").getBest().toString().trim();
 			size = s;
-		}
-		
-		if (updatedVars.contains("GetArtists")) {
-			culture = state.queryProb("GetArtists").getBest().toString().trim();
-			attributes.put(Column.CULTURE, new String[]{culture});
-			artists = reader.queryDB(Column.ARTIST, Column.CULTURE, culture, true, true);
-			if (artists != null) {
-				artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
-				
-				system.addContent("Artists", Arrays.toString(split(artists, " ")));
-				
-				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", ") + ".");
-			}
-			else {
-				system.addContent("u_m", "Oops, we don't have any works by " + culture + " artists!");
-			}
+			
+			//Ground size with user
+			system.addContent("SizeOfArt", s);
+			//For now, let's just add no uncertainty and we can add confirmations later. The infrastructure is already there
+			system.addContent("SizeOfArtStatus", "confirmed");
+			system.addContent("a_m", "Ground(SizeOfArt)");
 		}
 		
 		if (updatedVars.contains("ResolveArtist")) {
@@ -224,22 +258,6 @@ public class DBModule implements Module{
 			}
 		}
 		
-		if (updatedVars.contains("GetTitles")) {
-			artist = state.queryProb("GetTitles").getBest().toString().trim();
-			//Opendial works poorly with double spaces, which our database has plenty of
-			attributes.put(Column.ARTIST, artist.split(" "));
-			titles = reader.queryDB(Column.TITLE, attributes, true, true);
-			
-			if (titles != null) {
-				system.addContent("Titles", Arrays.toString(split(titles, " ")));
-				
-				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; ") + ".");
-			}
-			else {
-				system.addContent("u_m", "Oops, we don't seem to have any works by that artist!");
-			}
-		}
-		
 		if (updatedVars.contains("ResolveTitle")) {
 			String[] ts = state.queryProb("ResolveTitle").getBest().toString().trim().split("#");
 			Map<Column, String[]> query = new HashMap<Column, String[]>();
@@ -262,6 +280,38 @@ public class DBModule implements Module{
 			else {
 				system.addContent("TitleOfArtwork", results[0]);
 				system.addContent("TitleOfArtworkStatus", "tentative");
+			}
+		}
+		
+		if (updatedVars.contains("GetArtists")) {
+			culture = state.queryProb("GetArtists").getBest().toString().trim();
+			attributes.put(Column.CULTURE, new String[]{culture});
+			artists = reader.queryDB(Column.ARTIST, Column.CULTURE, culture, true, true);
+			if (artists != null) {
+				artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
+				
+				system.addContent("Artists", Arrays.toString(split(artists, " ")));
+				
+				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", ") + ".");
+			}
+			else {
+				system.addContent("u_m", "Oops, we don't have any works by " + culture + " artists!");
+			}
+		}
+		
+		if (updatedVars.contains("GetTitles")) {
+			artist = state.queryProb("GetTitles").getBest().toString().trim();
+			//Opendial works poorly with double spaces, which our database has plenty of
+			attributes.put(Column.ARTIST, artist.split(" "));
+			titles = reader.queryDB(Column.TITLE, attributes, true, true);
+			
+			if (titles != null) {
+				system.addContent("Titles", Arrays.toString(split(titles, " ")));
+				
+				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; ") + ".");
+			}
+			else {
+				system.addContent("u_m", "Oops, we don't seem to have any works by that artist!");
 			}
 		}
 		
