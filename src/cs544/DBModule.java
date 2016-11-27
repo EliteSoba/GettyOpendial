@@ -162,10 +162,11 @@ public class DBModule implements Module{
 				//If we haven't filled in artist yet, we can probably give some artist suggestions
 				artists = reader.queryDB(Column.ARTIST, attributes, true, true);
 				//Running list of artists
+				//I should just make a function to get a dupeless, parenless artists
 				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
-				if (artists != null && titles.length <= 5) {
+				if (artists != null && titles.length <= 5 || queries.size() >= 3) {
 					//Provide list of artists b/c its short
-					system.addContent("u_m", "Cool, we got artists: " + join(artists, "; "));
+					system.addContent("u_m", "Cool, we got artists: " + join(SqliteReader.removeDupes(SqliteReader.removeParens(artists)), "; "));
 					return true;
 				}
 			}
