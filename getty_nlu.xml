@@ -61,7 +61,7 @@
 					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
-				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.2">
+				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.5">
 					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>

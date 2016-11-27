@@ -8,7 +8,7 @@
 					<if var="a_m" value="Confirm(NameOfArtist, {NoA})" />
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="I'm sorry, but you weren't very clear there. Were you asking about {NoA}?" />
+					<set var="u_m" value="Just to confirm, were you asking about {NoA}?" />
 				</effect>
 			</case>
 		</rule>
@@ -45,6 +45,28 @@
 				</effect>
 			</case>
 		</rule>
+		<rule id="Ask Again Keywords">
+			<case>
+				<condition>
+					<if var="a_m" value="AskAgain" />
+					<if var="current_step" value="ChooseKeywords" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Okay. What themes are you interested in then?" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="Ask Again Medium">
+			<case>
+				<condition>
+					<if var="a_m" value="AskAgain" />
+					<if var="current_step" value="NameOfMedium" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Sure thing. Did you want to pick a new medium?" />
+				</effect>
+			</case>
+		</rule>
 		
 		<rule id="Culture AskRepeat">
 			<case>
@@ -76,6 +98,16 @@
 				<effect util="1">
 					<!-- This flag is specific to when ResolveMedium fails, which only happens when multiple media are input in one utterance -->
 					<set var="u_m" value="It sounded like you wanted to choose a specific painting medium there, but you might've tried to search for too many media at once. Mind asking again with a specific medium in mind?" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="Keywords AskRepeat">
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeatKeywords" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Sorry, but there were no works matching all of your keywords. Could you try providing me with maybe a smaller subset of your keywords?" />
 				</effect>
 			</case>
 		</rule>

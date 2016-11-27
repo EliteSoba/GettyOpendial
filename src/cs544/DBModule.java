@@ -30,6 +30,7 @@ public class DBModule implements Module{
 	String culture, artist, medium, size, dim, title, date, story;
 	Map<Column, String[]> attributes;
 	ArrayList<Column> queries;
+	boolean debug = false;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
 			"la", "y", "ter", "and", "by", "workshop", "with", "for", "in", "an", "a", "at", "as", "du", "et", "other", "new",
@@ -154,7 +155,7 @@ public class DBModule implements Module{
 			}
 			else if (titles.length <= 5) {
 				//Provide list of titles b/c its short
-				system.addContent("u_m", "Cool, we got paintings: " + join(titles, "; "));
+				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
 				system.addContent("current_step", "ChooseTitle");
 				return true;
 			}
@@ -165,9 +166,9 @@ public class DBModule implements Module{
 				//Running list of artists
 				//I should just make a function to get a dupeless, parenless artists
 				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
-				if (artists != null && titles.length <= 5 || queries.size() >= 3) {
+				if (artists != null && artists.length <= 5 || queries.size() >= 3) {
 					//Provide list of artists b/c its short
-					system.addContent("u_m", "Cool, we got artists: " + join(SqliteReader.removeDupes(SqliteReader.removeParens(artists)), "; "));
+					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupes(SqliteReader.removeParens(artists)), "; "));
 					return true;
 				}
 			}
@@ -205,13 +206,15 @@ public class DBModule implements Module{
 
 	@Override
 	public void trigger(DialogueState state, Collection<String> updatedVars) {
-		for (String s : updatedVars) {
-			System.out.print(s);
-			System.out.print(" ");
-			System.out.print(state.queryProb(s).getBest().toString());
-			System.out.print(" ");
+		if (debug) {
+			for (String s : updatedVars) {
+				System.out.print(s);
+				System.out.print(" ");
+				System.out.print(state.queryProb(s).getBest().toString());
+				System.out.print(" ");
+			}
+			System.out.println();
 		}
-		System.out.println();
 		
 		//Note to self: Not a big fan of all these strings.
 		//Should probably make an enum at the top or something
@@ -391,12 +394,9 @@ public class DBModule implements Module{
 				system.addContent("u_m", confMessage + ". Is that correct?");
 				system.addContent("NameOfMedium", "FILLER");
 				system.addContent("NameOfMediumStatus", "tentative");
-				
-				//system.addContent("a_m", "Ground(NameOfMedium,FILLER)");
 			}
 		}
 		if (updatedVars.contains("GroundNameOfMedium")) {
-			//medium = state.queryProb("GroundNameOfMedium").getBest().toString().trim();
 			//Media set from resolve
 			//media = media
 			attributes.put(Column.MEDIUM, media);
@@ -423,16 +423,15 @@ public class DBModule implements Module{
 				system.addContent("a_m", "AskRepeatKeywords");
 			}
 			else {
-				//Medium is a bit difficult because of "oil" or "canvas" or "panel" matching multiple results
-				//This is actually the exact same problem as story so if I solve this I solve story
-				//So it's simple enough to manage the query, but I need to ground it with the user in some
-				//way that doesn't look horrible
 				keywords = ks;
 				
-				//system.addContent("u_m", confMessage + ". Is that correct?");
+				String confMessage = "There were a few key words I picked up there that hold relevance with the selection we have on display."
+						+ " Here are the terms I'll restrict by: " + join(keywords, "; ");
+				
+				system.addContent("u_m", confMessage + ". Is that correct?");
 				system.addContent("ChooseKeywords", "FILLER");
-				system.addContent("ChooseKeywordsStatus", "confirmed");
-				system.addContent("a_m", "Ground(ChooseKeywords, FILLER)");
+				system.addContent("ChooseKeywordsStatus", "tentative");
+				//system.addContent("a_m", "Ground(ChooseKeywords, FILLER)");
 			}
 		}
 		if (updatedVars.contains("GroundChooseKeywords")) {
@@ -471,39 +470,6 @@ public class DBModule implements Module{
 				system.addContent("TitleOfArtworkStatus", "tentative");
 			}
 		}
-		
-		if (updatedVars.contains("GetArtists")) {
-			culture = state.queryProb("GetArtists").getBest().toString().trim();
-			attributes.put(Column.CULTURE, new String[]{culture});
-			artists = reader.queryDB(Column.ARTIST, Column.CULTURE, culture, true, true);
-			if (artists != null) {
-				artists = SqliteReader.removeDupes(SqliteReader.removeParens(artists));
-				
-				system.addContent("Artists", Arrays.toString(split(artists, " ")));
-				
-				system.addContent("u_m", "Here is a list of " + culture + " artists we have: " + join(artists, ", ") + ".");
-			}
-			else {
-				system.addContent("u_m", "Oops, we don't have any works by " + culture + " artists!");
-			}
-		}
-		
-		if (updatedVars.contains("GetTitles")) {
-			artist = state.queryProb("GetTitles").getBest().toString().trim();
-			//Opendial works poorly with double spaces, which our database has plenty of
-			attributes.put(Column.ARTIST, artist.split(" "));
-			titles = reader.queryDB(Column.TITLE, attributes, true, true);
-			
-			if (titles != null) {
-				system.addContent("Titles", Arrays.toString(split(titles, " ")));
-				
-				system.addContent("u_m", "Okay then. These are the works we have by " + SqliteReader.removeParens(artist) + ": " + join(titles, "; ") + ".");
-			}
-			else {
-				system.addContent("u_m", "Oops, we don't seem to have any works by that artist!");
-			}
-		}
-		
 		if (updatedVars.contains("GetData")) {
 			title = state.queryProb("GetData").getBest().toString().trim();
 			attributes.put(Column.TITLE, new String[]{title});
@@ -591,28 +557,35 @@ public class DBModule implements Module{
 			
 			if ("Explain".equalsIgnoreCase(curStep)) {
 				attributes.remove(Column.TITLE);
-				system.addContent("current_step", "TitleOfArtwork");
+				system.addContent("current_step", "ChooseTitle");
 				system.addContent("TitleOfArtwork", "None");
 				system.addContent("TitleOfArtworkState", "empty");
 				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: " + join(titles, "; ") + ".");
 			}
-			else if ("TitleOfArtwork".equalsIgnoreCase(curStep)) {
-				attributes.remove(Column.ARTIST);
-				system.addContent("current_step", "NameOfArtist");
-				system.addContent("NameOfArtist", "None");
-				system.addContent("NameOfArtistStatus", "empty");
-				system.addContent("u_m", "Well then. Any other artists you'd like to look at? In case you forgot, here's a list of "
-						+ culture + " ones: " + join(artists, ", ") + ".");
-			}
-			else if ("NameOfArtist".equalsIgnoreCase(curStep)) {
-				attributes.remove(Column.CULTURE);
-				system.addContent("current_step", "NameOfCulture");
-				system.addContent("NameOfCulture", "None");
-				system.addContent("NameOfCultureStatus", "empty");
-				system.addContent("u_m", "So which cultures do you want to explore? You can choose " + join(cultures, ", ") + ".");
+			else if (queries.size() >= 1) {
+				Column c = queries.remove(queries.size()-1);
+				attributes.remove(c);
+				
+				String current_step = "";
+				String message = "All right, we'll just retract your previous statement, then.";
+				
+				switch (c) {
+				case ARTIST: current_step = "NameOfArtist"; message += " Got any other artists you're interested in?"; break;
+				case CULTURE: current_step = "NameOfCulture"; message += " Any other cultures you'd like to try?"; break;
+				case SIZE: current_step = "SizeOfArt"; message += " Are you prehaps interested in another size of painting?"; break;
+				case MEDIUM: current_step = "NameOfMedium"; message += " Perhaps a different medium would interest you?"; break;
+				case KEYWORDS: current_step = "ChooseKeywords"; message += " What other themes would you like to look for?"; break;
+				//Default should never happen so let's just assume it's title
+				default: current_step = "TitleOfArtwork"; break;
+				}
+				
+				system.addContent("current_step", current_step);
+				system.addContent(current_step, "None");
+				system.addContent(current_step + "Status", "empty");
+				system.addContent("u_m", message);
 			}
 			else {
-				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward form here!");
+				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
 			}
 		}
 		
