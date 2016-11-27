@@ -156,6 +156,7 @@ public class DBModule implements Module{
 			else if (titles.length <= 5) {
 				//Provide list of titles b/c its short
 				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
+				system.addContent("u_m", "Any of these titles pique your interest?");
 				system.addContent("current_step", "ChooseTitle");
 				return true;
 			}
@@ -165,10 +166,11 @@ public class DBModule implements Module{
 				artists = reader.queryDB(Column.ARTIST, attributes, true, true);
 				//Running list of artists
 				//I should just make a function to get a dupeless, parenless artists
-				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
+				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
 				if (artists != null && artists.length <= 5 || queries.size() >= 3) {
 					//Provide list of artists b/c its short
-					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupes(SqliteReader.removeParens(artists)), "; "));
+					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupesAndParens(artists), "; "));
+					system.addContent("u_m", "Is there any artist in particular that you're interested in?");
 					return true;
 				}
 			}
@@ -187,20 +189,30 @@ public class DBModule implements Module{
 		
 		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
+		String message2 = "";
 		//Might be worth also putting a list of options for each suggested choice
 		if (!queries.contains(Column.KEYWORDS)) {
 			message += "you're looking for a particular subject or theme for your search?";
+			message2 = "Some examples would include \"Christianity\", or \"Impressionism\"";
 		}
 		else if (!queries.contains(Column.CULTURE)) {
 			message += "you'd care to restrict your search to only a particular culture?";
+			cultures = reader.queryDB(Column.CULTURE, attributes, true, true);
+			message2 = "The cultures available to choose from are: " + join(SqliteReader.removeDupesAndParens(cultures), ", ");
 		}
 		else if (!queries.contains(Column.SIZE)) {
 			message += "you'd like to narrow down your options by size?";
+			message2 = "Currently, our selection is divided into big, medium, and small paintings";
 		}
 		else if (!queries.contains(Column.MEDIUM)) {
 			message += "you'd be interested in a particular medium?";
+			media = reader.queryDB(Column.MEDIUM, attributes, true, true);
+			message2 = "The media represented here are: " + join(media, ", ");
 		}
 		system.addContent("u_m", message);
+		if (!"".equals(message2)) {
+			system.addContent("u_m", message2);
+		}
 		return true;
 	}
 
@@ -224,7 +236,7 @@ public class DBModule implements Module{
 			system.addContent("CulturesPretty", join(cultures, ", "));
 			
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
-			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
+			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
 			system.addContent("Media", Arrays.toString(split(media, " ")));
 			system.addContent("Keywords", Arrays.toString(split(SqliteReader.massKeywordsToArray(keywords), " ")));
 		}
@@ -562,6 +574,7 @@ public class DBModule implements Module{
 					system.addContent("u_m", "The creator of this work is " + artist);
 				}
 			}
+			system.addContent("u_m", "Is there anything else you'd like to know about this piece?");
 		}
 		
 		//This needs to be updated. Pretty much it should just be popping the last query from the stack

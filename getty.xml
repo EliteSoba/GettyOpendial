@@ -13,9 +13,24 @@
 			<value>Welcome to the Virtual Getty Tour! Feel free to have a look around. To start, why don't you list a culture you're interested in</value>
 		</variable>
 		
-		<!-- Set the current step we're interested in -->
-		<variable id="current_step">
-			<value>NameOfCulture</value>
+		<!-- Initialize some variables to None -->
+		<variable id="NameOfCulture">
+			<value>None</value>
+		</variable>
+		<variable id="NameOfArtist">
+			<value>None</value>
+		</variable>
+		<variable id="NameOfMedium">
+			<value>None</value>
+		</variable>
+		<variable id="ChooseKeywords">
+			<value>None</value>
+		</variable>
+		<variable id="SizeOfArt">
+			<value>None</value>
+		</variable>
+		<variable id="TitleOfArtwork">
+			<value>None</value>
 		</variable>
 	</initialstate>
 	

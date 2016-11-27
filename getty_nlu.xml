@@ -86,7 +86,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(age|old|year|when|how long)" />
+					<if var="u_u" relation="contains" value="(age|old|year|when|how long|date|period|era)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Date)" />
@@ -104,7 +104,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(why|story|meaning|idea|motivation|reason)" />
+					<if var="u_u" relation="contains" value="(why|story|meaning|idea|motivation|reason|background|history|description|describe)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Story)" />
@@ -113,7 +113,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(medium|made on|canvas|panel|oil|painted on|paint|how * made)" />
+					<if var="u_u" relation="contains" value="(medium|made on|canvas|panel|oil|painted on|paint|how * made|material|type of paint|kind of paint)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Medium)" />

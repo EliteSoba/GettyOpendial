@@ -123,7 +123,7 @@ public class SqliteReader {
 		}
 		
 		try {
-			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE");
+			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key + " ORDER BY COUNT(" + target.key + ") DESC") : "") + " COLLATE NOCASE");
 			ArrayList<String> res = new ArrayList<String>();
 			
 			while (rs.next()) {
@@ -304,6 +304,15 @@ public class SqliteReader {
 	}
 	
 	/**
+	 * Shortcut for removeDupes(removeParens(String[]))
+	 * @param results the array to remove dupes and parens from
+	 * @return the array without dupes and parens
+	 */
+	public static String[] removeDupesAndParens(String[] results) {
+		return removeDupes(removeParens(results));
+	}
+	
+	/**
 	 * Get all the unique values of a certain column
 	 * @param column The column of interest
 	 * @param parens Whether or not to remove parenthetical values
@@ -314,10 +323,7 @@ public class SqliteReader {
 		String[] results = runQuery(query, column, true);
 		
 		if (parens) {
-			results = removeParens(results);
-			//Entries were unique before parens were removed
-			//Now, we're not so sure
-			results = removeDupes(results);
+			results = removeDupesAndParens(results);
 		}
 		
 		return results;
