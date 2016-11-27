@@ -26,7 +26,7 @@ public class DBModule implements Module{
 	boolean paused = false;
 	DialogueSystem system;
 	SqliteReader reader;
-	String[] cultures, artists, media, dims, titles, holder;
+	String[] cultures, artists, media, dims, titles, holder, keywords;
 	String culture, artist, medium, size, dim, title, date, story;
 	Map<Column, String[]> attributes;
 	ArrayList<Column> queries;
@@ -58,6 +58,7 @@ public class DBModule implements Module{
 		artists = reader.getAll(Column.ARTIST, true);
 		titles = reader.getAll(Column.TITLE, false);
 		media = reader.getAll(Column.MEDIUM, true);
+		keywords = reader.getAll(Column.KEYWORDS, true);
 		attributes = new HashMap<Column, String[]>();
 		queries = new ArrayList<Column>();
 	}
@@ -186,14 +187,14 @@ public class DBModule implements Module{
 		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
 		//Might be worth also putting a list of options for each suggested choice
-		if (!queries.contains(Column.SIZE)) {
-			message += "you'd like to narrow down your options by size?";
+		if (!queries.contains(Column.STORY)) {
+			message += "you're looking for a particular subject or theme for your search?";
 		}
 		else if (!queries.contains(Column.CULTURE)) {
 			message += "you'd care to restrict your search to only a particular culture?";
 		}
-		else if (!queries.contains(Column.STORY)) {
-			message += "you're looking for a particular subject or theme for your search?";
+		else if (!queries.contains(Column.SIZE)) {
+			message += "you'd like to narrow down your options by size?";
 		}
 		else if (!queries.contains(Column.MEDIUM)) {
 			message += "you'd be interested in a particular medium?";
@@ -222,6 +223,7 @@ public class DBModule implements Module{
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
 			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
 			system.addContent("Media", Arrays.toString(split(media, " ")));
+			system.addContent("Keywords", Arrays.toString(split(SqliteReader.massKeywordsToArray(keywords), " ")));
 		}
 		
 		if (updatedVars.contains("ResolveCulture")) {
@@ -403,8 +405,45 @@ public class DBModule implements Module{
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
 			if (!nextStep(state)) {
 				system.addContent("u_m", "Maybe you'll find more success with another medium.");
-				attributes.remove(Column.SIZE);
-				queries.remove(Column.SIZE);
+				attributes.remove(Column.MEDIUM);
+				queries.remove(Column.MEDIUM);
+			}
+		}
+		
+		if (updatedVars.contains("ResolveKeywords")) {
+			String[] ks = state.queryProb("ResolveKeywords").getBest().toString().trim().split("#");
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			query.putAll(attributes);
+			query.put(Column.KEYWORDS, ks);
+			
+			String[] results = reader.queryDB(Column.KEYWORDS, query, true, true);
+			
+			//No results. AskRepeat
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
+				system.addContent("a_m", "AskRepeatKeywords");
+			}
+			else {
+				//Medium is a bit difficult because of "oil" or "canvas" or "panel" matching multiple results
+				//This is actually the exact same problem as story so if I solve this I solve story
+				//So it's simple enough to manage the query, but I need to ground it with the user in some
+				//way that doesn't look horrible
+				keywords = ks;
+				
+				//system.addContent("u_m", confMessage + ". Is that correct?");
+				system.addContent("ChooseKeywords", "FILLER");
+				system.addContent("ChooseKeywordsStatus", "confirmed");
+				system.addContent("a_m", "Ground(ChooseKeywords, FILLER)");
+			}
+		}
+		if (updatedVars.contains("GroundChooseKeywords")) {
+			attributes.put(Column.KEYWORDS, keywords);
+			queries.add(Column.KEYWORDS);
+			
+			system.addContent("u_m", "Okay, we'll look for paintings like that.");
+			if (!nextStep(state)) {
+				system.addContent("u_m", "How about you suggest some ideas for what other topics you'd like to see");
+				attributes.remove(Column.KEYWORDS);
+				queries.remove(Column.KEYWORDS);
 			}
 		}
 		

@@ -7,7 +7,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.sqlite.Function;
 
@@ -31,7 +33,9 @@ public class SqliteReader {
 		MEDIUM ("MEDIUM"),
 		DIM ("DIMENSIONS"),
 		STORY ("STORY"),
-		SIZE ("SIZE(DIMENSIONS)");
+		SIZE ("SIZE(DIMENSIONS)"),
+		PLACE ("PLACE"),
+		KEYWORDS("KEYWORDS");
 		
 		public String key;
 		Column(String key) {
@@ -319,6 +323,52 @@ public class SqliteReader {
 		return results;
 	}
 	
+	/**
+	 * Keywords aren't in the best format, so I make it into a map
+	 * @param keywords The keywords column from the table
+	 * @return A map of keyword-confidence pairs
+	 */
+	public static Map<String, Double> keywordsToMap(String keywords) {
+		Map<String, Double> keymap = new HashMap<String, Double>();
+		if (keywords == null || keywords.length() <= 2) {
+			return keymap;
+		}
+		String keys = keywords.substring(2, keywords.length()-2);
+		String[] ks = keys.split("\". \"");
+		
+		for (String k : ks) {
+			//Super optimism
+			String key = k.split("=")[0];
+			double d = Double.parseDouble(k.split("=")[1].replaceAll("\"", ""));
+			
+			keymap.put(key, d);
+		}
+		
+		return keymap;
+	}
+	
+	/**
+	 * Converts an array of keywords into a bigger array of those keywords
+	 * @param keywordss The list of keyword lists
+	 * @return An array containing all the keywords sans confidence
+	 */
+	public static String[] massKeywordsToArray(String[] keywordss) {
+		Set<String> tokens = new HashSet<String>();
+		for (String keywords : keywordss) {
+			Map<String, Double> keymap = keywordsToMap(keywords);
+			tokens.addAll(keymap.keySet());
+		}
+		
+		String[] newList = new String[tokens.size()];
+		
+		int i = 0;
+		for (String token : tokens) {
+			newList[i++] = token;
+		}
+		
+		return newList;
+	}
+	
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("getty.db");
 		
@@ -334,12 +384,17 @@ public class SqliteReader {
 		}
 		
 		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
-		attributes.put(Column.CULTURE, new String[]{"netherlandish"});
+		attributes.put(Column.KEYWORDS, new String[]{"epic poems"});
 		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
-		String[] output = reader.queryDB(Column.DIM, attributes, true, true);
+		String[] output = reader.queryDB(Column.KEYWORDS, attributes, true, true);
 		//output = DBModule.split(output, " ");
-		output = reader.getAll(Column.ARTIST, true);
-		System.out.println(Arrays.toString(output));
+		output = reader.getAll(Column.KEYWORDS, true);
+		String[] outputs = new String[0];
+		System.out.println(Arrays.toString(massKeywordsToArray(output)));
+		for (String o : output) {
+			System.out.println(Arrays.toString(keywordsToMap(o).keySet().toArray(outputs)));
+		}
+		//System.out.println(DBModule.join(output, "\n"));
 		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
 		//System.out.println(Arrays.toString(output));
 		/*System.out.println(Arrays.toString(output));

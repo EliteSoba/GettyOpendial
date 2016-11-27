@@ -43,38 +43,26 @@
 		<!-- Extracts paintings based on culture  -->
 		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
 		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
-		<rule id="Choose Culture">
-			<case>
+		<rule>
+			<case id="Choose Culture">
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
-			</case>
-		</rule>
-
-		<!-- Extracts paintings based on artist  -->
-		<rule id="Choose Artist">
-			<case>
-				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
-				</condition>
-				<effect prob="FuzzyMatch({u_u},{Artists})">
+				<effect prob="FuzzyMatch({u_u},{Artists}) - 0.1">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
-			</case>
-		</rule>
-		
-		<rule id="Choose Medium">
-			<case>
-				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
-				</condition>
-				<effect prob="FuzzyMatch({u_u},{Media})">
+				<effect prob="FuzzyMatch({u_u},{Media}) - 0.1">
 					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
+				</effect>
+				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.2">
+					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 			</case>
@@ -217,6 +205,15 @@
 				<effect>
 					<set var="ResolveSize" value="{Size}" />
 					<set var="current_step" value="SizeOfArt" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="SetKeywords({words})" />
+				</condition>
+				<effect>
+					<set var="ResolveKeywords" value="{words}" />
+					<set var="current_step" value="ChooseKeywords" />
 				</effect>
 			</case>
 			<case>
