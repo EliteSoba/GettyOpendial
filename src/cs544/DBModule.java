@@ -399,7 +399,12 @@ public class DBModule implements Module{
 			attributes.put(Column.MEDIUM, media);
 			queries.add(Column.MEDIUM);
 			
-			system.addContent("u_m", "Okay, we'll look for paintings painted ");
+			system.addContent("u_m", "Okay, we'll look for paintings like that.");
+			if (!nextStep(state)) {
+				system.addContent("u_m", "Maybe you'll find more success with another medium.");
+				attributes.remove(Column.SIZE);
+				queries.remove(Column.SIZE);
+			}
 		}
 		
 		if (updatedVars.contains("ResolveTitle")) {

@@ -109,6 +109,15 @@ public class SqliteReader {
 	private String[] runQuery(String query, Column target, boolean unique) {
 		String[] results = null;
 
+		if (target == Column.ARTIST) {
+			if (query.contains("WHERE")) {
+				query += " AND " + target.key + " NOT LIKE \"%Unknown%\"";
+			}
+			else {
+				query += " WHERE " + target.key + " NOT LIKE \"%Unknown%\"";
+			}
+		}
+		
 		try {
 			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE");
 			ArrayList<String> res = new ArrayList<String>();
@@ -329,7 +338,7 @@ public class SqliteReader {
 		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
 		String[] output = reader.queryDB(Column.DIM, attributes, true, true);
 		//output = DBModule.split(output, " ");
-		output = reader.getAll(Column.MEDIUM, true);
+		output = reader.getAll(Column.ARTIST, true);
 		System.out.println(Arrays.toString(output));
 		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
 		//System.out.println(Arrays.toString(output));
