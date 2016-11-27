@@ -119,6 +119,15 @@
 					<set var="a_u" value="Explain(Medium)" />
 				</effect>
 			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(who|artist|painter)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Artist)" />
+				</effect>
+			</case>
 		</rule>
 
 		<!-- Extracts confirmations and disconfirmations -->

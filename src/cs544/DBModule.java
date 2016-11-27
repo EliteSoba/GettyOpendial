@@ -548,6 +548,20 @@ public class DBModule implements Module{
 					system.addContent("u_m", "This work was created using " + medium);
 				}
 			}
+			else if ("Artist".equals(category)) {
+				holder = reader.queryDB(Column.ARTIST, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we don't have any details about the artist of the work.");
+				}
+				else {
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					artist = holder[0];
+					system.addContent("u_m", "The creator of this work is " + artist);
+				}
+			}
 		}
 		
 		//This needs to be updated. Pretty much it should just be popping the last query from the stack
