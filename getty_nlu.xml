@@ -84,7 +84,7 @@
 		<rule>
 			<case>
 				<condition>
-					<if var="current_step" value="SetTitle" relation="="/>
+					<if var="current_step" value="ChooseTitle" relation="="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
 					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>

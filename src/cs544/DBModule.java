@@ -154,6 +154,7 @@ public class DBModule implements Module{
 			else if (titles.length <= 5) {
 				//Provide list of titles b/c its short
 				system.addContent("u_m", "Cool, we got paintings: " + join(titles, "; "));
+				system.addContent("current_step", "ChooseTitle");
 				return true;
 			}
 			//If we're here, title hasn't been set and we have too many title choices
