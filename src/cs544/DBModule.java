@@ -187,7 +187,7 @@ public class DBModule implements Module{
 		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
 		//Might be worth also putting a list of options for each suggested choice
-		if (!queries.contains(Column.STORY)) {
+		if (!queries.contains(Column.KEYWORDS)) {
 			message += "you're looking for a particular subject or theme for your search?";
 		}
 		else if (!queries.contains(Column.CULTURE)) {
