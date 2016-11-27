@@ -317,7 +317,7 @@ public class SqliteReader {
 			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + " FROM PAINTINGS WHERE SIZE(DIMENSIONS) < 3600 order by SIZE(DIMENSIONS)");
 			
 			while (rs.next()) {
-				System.out.println(rs.getString(1));
+				//System.out.println(rs.getString(1));
 			}
 			
 		} catch (SQLException e) {
@@ -329,6 +329,7 @@ public class SqliteReader {
 		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
 		String[] output = reader.queryDB(Column.DIM, attributes, true, true);
 		//output = DBModule.split(output, " ");
+		output = reader.getAll(Column.MEDIUM, true);
 		System.out.println(Arrays.toString(output));
 		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
 		//System.out.println(Arrays.toString(output));

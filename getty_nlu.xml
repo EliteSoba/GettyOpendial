@@ -18,7 +18,7 @@
 					<if var="u_u" relation="contains" value="(big|large)" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Big)" exclusive="false"/>
+					<set var="a_u" value="SetSize(Big)"/>
 				</effect>
 			</case>
 			<case>
@@ -27,7 +27,7 @@
 					<if var="u_u" relation="contains" value="small" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Small)" exclusive="false"/>
+					<set var="a_u" value="SetSize(Small)"/>
 				</effect>
 			</case>
 			<case>
@@ -36,7 +36,7 @@
 					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Medium)" exclusive="false"/>
+					<set var="a_u" value="SetSize(Medium)"/>
 				</effect>
 			</case>
 		</rule>
@@ -50,7 +50,7 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 			</case>
 		</rule>
@@ -63,7 +63,19 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Artists})">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
+				</effect>
+			</case>
+		</rule>
+		
+		<rule id="Choose Medium">
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+				</condition>
+				<effect prob="FuzzyMatch({u_u},{Media})">
+					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 			</case>
 		</rule>
@@ -72,11 +84,11 @@
 		<rule>
 			<case>
 				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="SetTitle" relation="="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
 					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 			</case>
 		</rule>
@@ -194,6 +206,7 @@
 				</condition>
 				<effect>
 					<set var="ResolveArtist" value="{Artist}" />
+					<set var="current_step" value="NameOfArtist" />
 				</effect>
 			</case>
 			<case>
@@ -204,6 +217,15 @@
 				<effect>
 					<set var="ResolveSize" value="{Size}" />
 					<set var="current_step" value="SizeOfArt" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="SetMedium({Medium})" />
+				</condition>
+				<effect>
+					<set var="ResolveMedium" value="{Medium}" />
+					<set var="current_step" value="NameOfMedium" />
 				</effect>
 			</case>
 			<case>

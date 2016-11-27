@@ -57,6 +57,7 @@ public class DBModule implements Module{
 		cultures = reader.getAll(Column.CULTURE, true);
 		artists = reader.getAll(Column.ARTIST, true);
 		titles = reader.getAll(Column.TITLE, false);
+		media = reader.getAll(Column.MEDIUM, true);
 		attributes = new HashMap<Column, String[]>();
 		queries = new ArrayList<Column>();
 	}
@@ -135,8 +136,9 @@ public class DBModule implements Module{
 	/**
 	 * From any grounding, give suggestions for the next thing to look into
 	 * @param state DialogueState to provide system content. Perhaps unnecessary if all I do is add u_m
+	 * @return true if we got any results, false otherwise
 	 */
-	private void nextStep(DialogueState state) {
+	private boolean nextStep(DialogueState state) {
 		//We're only making these suggestions if title hasn't been filled in yet
 		//If title has been filled in, uh, we probably shouldn't be here...
 		//I wonder if it'd be better to say artists first even if only very few titles...
@@ -147,12 +149,12 @@ public class DBModule implements Module{
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
 			if (titles == null || titles.length == 0) {
 				system.addContent("u_m", "Oh dear, it seems we don't have any paintings that fit your restrictions.");
-				return;
+				return false;
 			}
 			else if (titles.length <= 5) {
 				//Provide list of titles b/c its short
 				system.addContent("u_m", "Cool, we got paintings: " + join(titles, "; "));
-				return;
+				return true;
 			}
 			//If we're here, title hasn't been set and we have too many title choices
 			else if (!queries.contains(Column.ARTIST)) {
@@ -163,11 +165,23 @@ public class DBModule implements Module{
 				if (artists != null && titles.length <= 5) {
 					//Provide list of artists b/c its short
 					system.addContent("u_m", "Cool, we got artists: " + join(artists, "; "));
-					return;
+					return true;
 				}
 			}
 		}
 		//We fall down here if nothing else worked
+		//Set some more running filters
+		//At this point I wonder if it'd be better to just leave options open, but backpedal when faced with no results  
+		/*
+		if (!queries.contains(Column.CULTURE)) {
+			cultures = SqliteReader.removeDupes(SqliteReader.removeParens(reader.queryDB(Column.CULTURE, attributes, true, true)));
+			system.addContent("Cultures", Arrays.toString(cultures));
+		}
+		if (!queries.contains(Column.MEDIUM)) {
+			
+		}*/
+		
+		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
 		//Might be worth also putting a list of options for each suggested choice
 		if (!queries.contains(Column.SIZE)) {
@@ -183,6 +197,7 @@ public class DBModule implements Module{
 			message += "you'd be interested in a particular medium?";
 		}
 		system.addContent("u_m", message);
+		return true;
 	}
 
 	@Override
@@ -204,6 +219,7 @@ public class DBModule implements Module{
 			
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
 			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeParens(artists), " ")));
+			system.addContent("Media", Arrays.toString(split(media, " ")));
 		}
 		
 		if (updatedVars.contains("ResolveCulture")) {
@@ -248,7 +264,11 @@ public class DBModule implements Module{
 			
 			//Ground with user and ask for next step
 			system.addContent("u_m", "All right, then let's look at " + culture + " paintings.");
-			nextStep(state);
+			if (!nextStep(state)) {
+				system.addContent("u_m", "Let's just go back a bit and stop looking for " + culture + " paintings in particular.");
+				attributes.remove(Column.CULTURE);
+				queries.remove(Column.CULTURE);
+			}
 		}
 		
 		if (updatedVars.contains("ResolveSize")) {
@@ -270,7 +290,11 @@ public class DBModule implements Module{
 
 			//Ground with user and ask for next step
 			system.addContent("u_m", size + " paintings? Sounds good.");
-			nextStep(state);
+			if (!nextStep(state)) {
+				system.addContent("u_m", "We'll remove this size filter, so maybe pick a different size you're interested in.");
+				attributes.remove(Column.SIZE);
+				queries.remove(Column.SIZE);
+			}
 		}
 		
 		if (updatedVars.contains("ResolveArtist")) {
@@ -289,14 +313,12 @@ public class DBModule implements Module{
 			else if (results.length == 1) {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
 				//Let's just always be tentative with artist for fun
-				system.addContent("current_step", "NameOfArtist");
 				system.addContent("NameOfArtistStatus", "tentative");
 				//system.addContent("NameOfArtistStatus", "confirmed");
 				//system.addContent("a_m", "Ground(NameOfArtist)");
 			}
 			else {
 				system.addContent("NameOfArtist", SqliteReader.removeParens(results[0]));
-				system.addContent("current_step", "NameOfArtist");
 				system.addContent("NameOfArtistStatus", "tentative");
 			}
 		}
@@ -311,6 +333,72 @@ public class DBModule implements Module{
 			//nextStep will either prompt for title or warn that there are no works
 			//the latter should never happen because an artist with no matching works won't be an option
 			nextStep(state);
+		}
+		
+		if (updatedVars.contains("ResolveMedium")) {
+			String[] m = state.queryProb("ResolveMedium").getBest().toString().trim().split("#");
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			query.putAll(attributes);
+			query.put(Column.MEDIUM, m);
+			
+			String[] results = reader.queryDB(Column.MEDIUM, query, true, true);
+			
+			//No results. AskRepeat
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
+				system.addContent("a_m", "AskRepeatMedium");
+			}
+			else {
+				//Medium is a bit difficult because of "oil" or "canvas" or "panel" matching multiple results
+				//This is actually the exact same problem as story so if I solve this I solve story
+				//So it's simple enough to manage the query, but I need to ground it with the user in some
+				//way that doesn't look horrible
+				media = m;
+				
+				//Confirmation message is difficult for this, so we'll manage it here in code instead of in the nlg
+				String on = "";
+				for (String med : media) {
+					if (reader.queryDB(Column.MEDIUM, Column.MEDIUM, "on " + med, true, true) != null) {
+						on = med;
+						break;
+					}
+				}
+				
+				boolean first = true;
+				String confMessage = "So you're looking for ";
+				
+				for (String med : media) {
+					if (!on.equals(med)) {
+						if (first) {
+							confMessage += "works painted with " + med;
+							first = false;
+						}
+						else {
+							confMessage += ", " + med;
+						}
+					}
+				}
+				//No results other than on
+				if (first) {
+					confMessage += "a painting done on " + on;
+				}
+				else if (!on.equals("")) {
+					confMessage += " on " + on;
+				}
+				system.addContent("u_m", confMessage + ". Is that correct?");
+				system.addContent("NameOfMedium", "FILLER");
+				system.addContent("NameOfMediumStatus", "tentative");
+				
+				//system.addContent("a_m", "Ground(NameOfMedium,FILLER)");
+			}
+		}
+		if (updatedVars.contains("GroundNameOfMedium")) {
+			//medium = state.queryProb("GroundNameOfMedium").getBest().toString().trim();
+			//Media set from resolve
+			//media = media
+			attributes.put(Column.MEDIUM, media);
+			queries.add(Column.MEDIUM);
+			
+			system.addContent("u_m", "Okay, we'll look for paintings painted ");
 		}
 		
 		if (updatedVars.contains("ResolveTitle")) {

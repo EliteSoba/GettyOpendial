@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <domain>
 	<!-- Dialogue Management -->
-	<model trigger="NameOfCultureStatus,NameOfArtistStatus,TitleOfArtworkStatus">
+	<model trigger="NameOfCultureStatus,NameOfArtistStatus,TitleOfArtworkStatus,SizeOfArtStatus,NameOfMediumStatus">
 		<!-- Based on DBModule, we'll never have a tentative NoCS -->
 		<!--rule id="NoCS Fill">
 			<case>
@@ -36,6 +36,17 @@
 				</condition>
 				<effect util="1">
 					<set var="a_m" value="Confirm(SizeOfArt, {SizeOfArt})" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="NoMS Fill">
+			<case>
+				<condition>
+					<if var="NameOfMediumStatus" value="tentative" relation="="/>
+					<if var="current_step" value="NameOfMedium" />
+				</condition>
+				<effect util="1">
+					<set var="a_m" value="Confirm(NameOfMedium, {NameOfMedium})" />
 				</effect>
 			</case>
 		</rule>
