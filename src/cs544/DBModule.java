@@ -143,7 +143,7 @@ public class DBModule implements Module{
 	 * @param bootleg Sad bootleg attempt to make things easier on myself for changing the message for rejections
 	 * @return true if we got any results, false otherwise
 	 */
-	private boolean nextStep(DialogueState state, boolean bootleg) {
+	private boolean nextStep(DialogueState state, String bootleg) {
 		//We're only making these suggestions if title hasn't been filled in yet
 		//If title has been filled in, uh, we probably shouldn't be here...
 		//I wonder if it'd be better to say artists first even if only very few titles...
@@ -239,8 +239,8 @@ public class DBModule implements Module{
 		//We fall down here if nothing else worked	
 		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
-		if (bootleg) {
-			message = "Okay then. Well there are still other ways to limit your search, so perhaps ";
+		if (!"".equals(bootleg)) {
+			message = bootleg;
 		}
 		String message2 = "";
 		//Might be worth also putting a list of options for each suggested choice
@@ -365,7 +365,7 @@ public class DBModule implements Module{
 			
 			//Ground with user and ask for next step
 			system.addContent("u_m", "All right, then let's look at " + culture + " paintings.");
-			if (!nextStep(state, false)) {
+			if (!nextStep(state, "")) {
 				system.addContent("u_m", "Let's just go back a bit and stop looking for " + culture + " paintings in particular.");
 				attributes.remove(Column.CULTURE);
 				queries.remove(Column.CULTURE);
@@ -402,7 +402,7 @@ public class DBModule implements Module{
 			
 			//Ground with user and ask for next step
 			system.addContent("u_m", "All right, then let's look at paintings from " + place + ".");
-			if (!nextStep(state, false)) {
+			if (!nextStep(state, "")) {
 				system.addContent("u_m", "Let's just go back a bit and stop looking for paintings from " + place + " in particular.");
 				attributes.remove(Column.PLACE);
 				queries.remove(Column.CULTURE);
@@ -429,7 +429,7 @@ public class DBModule implements Module{
 
 			//Ground with user and ask for next step
 			system.addContent("u_m", size + " paintings? Sounds good.");
-			if (!nextStep(state, false)) {
+			if (!nextStep(state, "")) {
 				system.addContent("u_m", "We'll remove this size filter, so maybe pick a different size you're interested in.");
 				attributes.remove(Column.SIZE);
 				queries.remove(Column.SIZE);
@@ -472,7 +472,7 @@ public class DBModule implements Module{
 			system.addContent("u_m", "Okay, we'll get you paintings by " + SqliteReader.removeParens(artist));
 			//nextStep will either prompt for title or warn that there are no works
 			//the latter should never happen because an artist with no matching works won't be an option
-			nextStep(state, false);
+			nextStep(state, "");
 		}
 		
 		if (updatedVars.contains("ResolveMedium")) {
@@ -537,7 +537,7 @@ public class DBModule implements Module{
 			queries.add(Column.MEDIUM);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
-			if (!nextStep(state, false)) {
+			if (!nextStep(state, "")) {
 				system.addContent("u_m", "Maybe you'll find more success with another medium.");
 				attributes.remove(Column.MEDIUM);
 				queries.remove(Column.MEDIUM);
@@ -574,7 +574,7 @@ public class DBModule implements Module{
 			queries.add(Column.KEYWORDS);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
-			if (!nextStep(state, false)) {
+			if (!nextStep(state, "")) {
 				system.addContent("u_m", "How about you suggest some ideas for what other topics you'd like to see");
 				attributes.remove(Column.KEYWORDS);
 				queries.remove(Column.KEYWORDS);
@@ -701,6 +701,24 @@ public class DBModule implements Module{
 					system.addContent("u_m", "The creator of this work is " + artist);
 				}
 			}
+			else if ("Location".equals(category)) {
+				holder = reader.queryDB(Column.CULTURE, attributes, true, false);
+				
+				if (holder.length == 0 || holder[0] == null || "null".equalsIgnoreCase(holder[0])) {
+					system.addContent("u_m", "Sorry, we don't have any details about the country of origin of the work.");
+				}
+				else {
+					if (holder.length > 1){
+						System.out.println("Warning. Got multiple matches given filters.");
+					}
+					culture = holder[0];
+					system.addContent("u_m", "This is a " + culture + " piece");
+				}
+			}
+			else if ("Title".equals(category)) {
+				//We know what the title is because that's how we got here.
+				system.addContent("u_m", "The title of this piece is " + title);
+			}
 			system.addContent("u_m", "Is there anything else you'd like to know about this piece?");
 		}
 		
@@ -739,7 +757,7 @@ public class DBModule implements Module{
 					if (c == Column.CULTURE && attributes.containsKey(Column.PLACE)) {
 						c = Column.PLACE;
 					}
-				} while (!attributes.containsKey(c));
+				} while (!attributes.containsKey(c) && !queries.isEmpty());
 				attributes.remove(c);
 
 				if (c == Column.PLACE) {
@@ -764,6 +782,11 @@ public class DBModule implements Module{
 				system.addContent(current_step, "None");
 				system.addContent(current_step + "Status", "empty");
 				system.addContent("u_m", message);
+			}
+			else if ("Exit".equals(curStep)) {
+				queries.clear();
+				attributes.clear();
+				nextStep(state, "Okay, let's start again. Perhaps ");
 			}
 			else {
 				//Probably should just end at this point and essentially quit out (stop accepting input)
@@ -794,7 +817,7 @@ public class DBModule implements Module{
 				queries.add(Column.ARTIST);
 			}
 			
-			nextStep(state, true);
+			nextStep(state, "Okay then. Well there are still other ways to limit your search, so perhaps ");
 		}
 		
 	}

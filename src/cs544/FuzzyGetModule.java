@@ -43,12 +43,12 @@ public class FuzzyGetModule implements Module{
 	public void trigger(DialogueState state, Collection<String> updatedVars) {
 		if (updatedVars.contains("FuzzyGet")) {
 			String action = state.queryProb("FuzzyGet").getBest().toString();
-			String[] args = action.substring(1, action.length()-1).split(" # ");
+			String[] args = action.split(" # ");
 			if (args.length != 3) {
 				//We got a bad call
 				return;
 			}
-			String u_u = args[0], filter = args[1], act = args[2];
+			String u_u = args[0].trim(), filter = args[1].trim(), act = args[2].trim();
 			
 			//Filter is of the form [X, Y] aka Arrays.toString form
 			String[] fils = filter.substring(1, filter.length()-1).split(", ");

@@ -31,7 +31,7 @@
 					<if var="u_u" relation="contains" value="(big|large)" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Big)"/>
+					<set var="a_u" value="SetSize(Big)" exclusive="true"/>
 				</effect>
 			</case>
 			<case>
@@ -42,7 +42,7 @@
 					<if var="u_u" relation="contains" value="small" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Small)"/>
+					<set var="a_u" value="SetSize(Small)" exclusive="true"/>
 				</effect>
 			</case>
 			<case>
@@ -53,14 +53,9 @@
 					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
 				</condition>
 				<effect>
-					<set var="a_u" value="SetSize(Medium)"/>
+					<set var="a_u" value="SetSize(Medium)" exclusive="true"/>
 				</effect>
 			</case>
-		</rule>
-		<!-- Extracts paintings based on culture  -->
-		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
-		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
-		<rule>
 			<case id="Choose Culture">
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
@@ -69,26 +64,29 @@
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="true"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Places})">
 					<set var="FuzzyGet" value="{u_u} # {Places} # SetPlace" exclusive="true"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Artists}) - 0.1">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="true"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Media}) - 0.1">
 					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="true"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.5">
 					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="true"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 			</case>
 		</rule>
+		<!-- Extracts paintings based on culture  -->
+		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
+		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
 		
 		<!-- Time to get the title -->
 		<rule>
@@ -97,8 +95,8 @@
 					<if var="current_step" value="ChooseTitle" relation="="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
-					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet"/>
+					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 			</case>
 		</rule>
@@ -148,6 +146,24 @@
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Artist)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(where|country|place)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Location)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(title|name*painting)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Title)" />
 				</effect>
 			</case>
 		</rule>
@@ -323,6 +339,7 @@
 				</condition>
 				<effect>
 					<set var="current_step" value="Exit" />
+					<set var="current_prompt" value="Exit" />
 					<set var="u_m" value="Okay, have a nice day!" />
 				</effect>
 			</case>
@@ -335,7 +352,7 @@
 				</condition>
 				<effect>
 					<set var="a_m" value="AskAgain" />
-					<set var="GoBack" value="{current_step}" />
+					<set var="GoBack" value="Exit" />
 				</effect>
 			</case>
 		</rule>
