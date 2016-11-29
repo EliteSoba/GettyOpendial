@@ -68,23 +68,23 @@
 					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
-					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="true"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Places})">
-					<set var="FuzzyGet" value="{u_u} # {Places} # SetPlace" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Places} # SetPlace" exclusive="true"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Artists}) - 0.1">
-					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="true"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Media}) - 0.1">
-					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="true"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.5">
-					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="true"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
 			</case>
