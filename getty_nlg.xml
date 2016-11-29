@@ -168,6 +168,7 @@
 				<condition>
 					<if var="AskRepeat" value="AskRepeat" />
 					<if var="current_prompt" value="NameOfArtist" />
+					<if var="ArtistsPretty" value="TooMany" relation="!=" />
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least. Maybe you should try someone from this list: {ArtistsPretty}." />
@@ -176,10 +177,31 @@
 			<case>
 				<condition>
 					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="NameOfArtist" />
+					<if var="ArtistsPretty" value="TooMany" relation="=" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
 					<if var="current_prompt" value="TitleOfArtwork" />
+					<if var="TitlesPretty" value="TooMany" relation="!=" />
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least. Maybe you should try something from this list: {TitlesPretty}." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="TitleOfArtwork" />
+					<if var="TitlesPretty" value="TooMany" relation="=" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least." />
 				</effect>
 			</case>
 			<case>

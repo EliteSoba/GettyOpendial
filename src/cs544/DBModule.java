@@ -31,6 +31,7 @@ public class DBModule implements Module{
 	Map<Column, String[]> attributes;
 	ArrayList<Column> queries;
 	boolean debug = true;
+	boolean searched = false;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
 			"la", "y", "ter", "and", "by", "workshop", "with", "for", "in", "an", "a", "at", "as", "du", "et", "other", "new",
@@ -146,6 +147,7 @@ public class DBModule implements Module{
 		//If title has been filled in, uh, we probably shouldn't be here...
 		//I wonder if it'd be better to say artists first even if only very few titles...
 		if (!queries.contains(Column.TITLE) && attributes.size() != 0) {
+			searched = true;
 			titles = reader.queryDB(Column.TITLE, attributes, true, true);
 			//Running list of titles
 			
@@ -168,10 +170,26 @@ public class DBModule implements Module{
 			else if (titles.length <= 5 || queries.size() >= 5) {
 				//Provide list of titles b/c its short
 				//Alternatively, out of things to query for
-				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
+				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: ");
+				String list = "";
+				for (int i = 0; i < titles.length; ++i) {
+					list += titles[i] + " | ";
+					if (i % 5 == 0) {
+						system.addContent("u_m", list);
+						list = "";
+					}
+				}
+				if (!"".equals(list)) {
+					system.addContent("u_m", list);
+				}
 				system.addContent("u_m", "Any of these titles pique your interest?");
 				system.addContent("current_step", "ChooseTitle");
-				system.addContent("TitlesPretty", join(titles, "; "));
+				if (titles.length < 8) {
+					system.addContent("TitlesPretty", join(titles, " | "));
+				}
+				else {
+					system.addContent("TitlesPretty", "TooMany");
+				}
 				system.addContent("current_prompt", "TitleOfArtwork");
 				return true;
 			}
@@ -186,9 +204,26 @@ public class DBModule implements Module{
 				}
 				if (artists != null && artists.length <= 5 || queries.size() >= 3) {
 					//Provide list of artists b/c its short
-					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupesAndParens(artists), "; "));
+					String[] a = SqliteReader.removeDupesAndParens(artists);
+					system.addContent("u_m", "All right, here are some artists that fit your criteria: ");
+					String list = "";
+					for (int i = 0; i < a.length; ++i) {
+						list += a[i] + " | ";
+						if (i % 5 == 0) {
+							system.addContent("u_m", list);
+							list = "";
+						}
+					}
+					if (!"".equals(list)) {
+						system.addContent("u_m", list);
+					}
 					system.addContent("u_m", "Is there any artist in particular that you're interested in?");
-					system.addContent("ArtistsPretty", join(SqliteReader.removeParens(artists), "; "));
+					if (artists.length <= 8) {
+						system.addContent("ArtistsPretty", join(SqliteReader.removeDupesAndParens(artists), " | "));
+					}
+					else {
+						system.addContent("ArtistsPretty", "TooMany");
+					}
 					system.addContent("current_prompt", "NameOfArtist");
 					return true;
 				}
@@ -232,8 +267,14 @@ public class DBModule implements Module{
 		}
 		else {
 			//This only happens if we have no queries because a single query will be caught higher up
-			system.addContent("u_m", "I see how it is. If you don't want to play along, then fine. I'm leaving.");
-			system.addContent("current_step", "Exit");
+			if (!searched) {
+				system.addContent("u_m", "I see how it is. If you don't want to play along, then fine. I'm leaving.");
+				system.addContent("current_step", "Exit");
+			}
+			else {
+				system.addContent("u_m", "I see. I take it you want to quit, then?");
+				system.addContent("a_m", "Confirm(Exit)");
+			}
 			return true;
 		}
 		system.addContent("u_m", message);
@@ -263,9 +304,9 @@ public class DBModule implements Module{
 			system.addContent("CulturesPretty", join(cultures, ", "));
 			
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
-			system.addContent("TitlesPretty", join(titles, "; "));
+			system.addContent("TitlesPretty", "TooMany");
 			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
-			system.addContent("ArtistsPretty", join(SqliteReader.removeParens(artists), "; "));
+			system.addContent("ArtistsPretty", "TooMany");
 			system.addContent("Media", Arrays.toString(split(media, " ")));
 			system.addContent("MediaPretty", join(media, ", "));
 			system.addContent("Keywords", Arrays.toString(split(SqliteReader.massKeywordsToArray(keywords), " ")));
@@ -627,7 +668,18 @@ public class DBModule implements Module{
 				system.addContent("current_step", "ChooseTitle");
 				system.addContent("TitleOfArtwork", "None");
 				system.addContent("TitleOfArtworkState", "empty");
-				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: " + join(titles, "; ") + ".");
+				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: ");
+				String list = "";
+				for (int i = 0; i < titles.length; ++i) {
+					list += titles[i] + " | ";
+					if (i % 5 == 0) {
+						system.addContent("u_m", list);
+						list = "";
+					}
+				}
+				if (!"".equals(list)) {
+					system.addContent("u_m", list);
+				}
 			}
 			else if (queries.size() >= 1) {
 				Column c = queries.remove(queries.size()-1);
@@ -656,7 +708,8 @@ public class DBModule implements Module{
 				//Probably should just end at this point and essentially quit out (stop accepting input)
 				//Maybe ask for a quitting confirmation?
 				//Maybe we should also give the option to do so at an earlier point
-				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
+				system.addContent("u_m", "All right, would you like to quit?");
+				system.addContent("a_m", "Confirm(Exit)");
 			}
 		}
 		
