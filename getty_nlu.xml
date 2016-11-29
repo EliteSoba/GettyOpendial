@@ -165,7 +165,7 @@
 			</case>
 			<case>
 				<condition>
-					<if var="u_u" relation="contains" value="(no|nope|wrong)" />
+					<if var="u_u" relation="contains" value="(no|nope|wrong|not really)" />
 					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
