@@ -279,6 +279,8 @@ public class DBModule implements Module{
 			culture = state.queryProb("GroundNameOfCulture").getBest().toString().trim();
 			
 			attributes.put(Column.CULTURE, new String[]{culture});
+			//If we're replacing, it'll replace automatically with maps, but not with arraylists
+			queries.remove(Column.CULTURE);
 			queries.add(Column.CULTURE);
 			
 			//Ground with user and ask for next step
@@ -305,6 +307,7 @@ public class DBModule implements Module{
 			size = state.queryProb("GroundSizeOfArt").getBest().toString().trim();
 			
 			attributes.put(Column.SIZE, new String[]{size});
+			queries.remove(Column.SIZE);
 			queries.add(Column.SIZE);
 
 			//Ground with user and ask for next step
@@ -346,6 +349,7 @@ public class DBModule implements Module{
 			//Well there is, but it's more trouble than it's worth.
 			artist = state.queryProb("GroundNameOfArtist").getBest().toString().trim();
 			attributes.put(Column.ARTIST, new String[]{artist});
+			queries.remove(Column.ARTIST);
 			queries.add(Column.ARTIST);
 			
 			system.addContent("u_m", "Okay, we'll get you paintings by " + SqliteReader.removeParens(artist));
@@ -412,6 +416,7 @@ public class DBModule implements Module{
 			//Media set from resolve
 			//media = media
 			attributes.put(Column.MEDIUM, media);
+			queries.remove(Column.MEDIUM);
 			queries.add(Column.MEDIUM);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
@@ -448,6 +453,7 @@ public class DBModule implements Module{
 		}
 		if (updatedVars.contains("GroundChooseKeywords")) {
 			attributes.put(Column.KEYWORDS, keywords);
+			queries.remove(Column.KEYWORDS);
 			queries.add(Column.KEYWORDS);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
@@ -612,6 +618,7 @@ public class DBModule implements Module{
 				system.addContent("u_m", message);
 			}
 			else {
+				//Probably should just end at this point and essentially quit out (stop accepting input)
 				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
 			}
 		}
