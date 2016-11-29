@@ -171,6 +171,8 @@ public class DBModule implements Module{
 				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
 				system.addContent("u_m", "Any of these titles pique your interest?");
 				system.addContent("current_step", "ChooseTitle");
+				system.addContent("TitlesPretty", join(titles, "; "));
+				system.addContent("current_prompt", "TitleOfArtwork");
 				return true;
 			}
 			//If we're here, title hasn't been set and we have too many title choices
@@ -186,6 +188,7 @@ public class DBModule implements Module{
 					//Provide list of artists b/c its short
 					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupesAndParens(artists), "; "));
 					system.addContent("u_m", "Is there any artist in particular that you're interested in?");
+					system.addContent("ArtistsPretty", join(SqliteReader.removeParens(artists), "; "));
 					system.addContent("current_prompt", "NameOfArtist");
 					return true;
 				}
@@ -209,6 +212,7 @@ public class DBModule implements Module{
 			cultures = reader.queryDB(Column.CULTURE, attributes, true, true);
 			if (cultures != null) {
 				message2 = "The cultures available to choose from are: " + join(SqliteReader.removeDupesAndParens(cultures), ", ");
+				system.addContent("CulturesPretty", join(cultures, ", "));
 			}
 			system.addContent("current_prompt", "NameOfCulture");
 		}
@@ -222,6 +226,7 @@ public class DBModule implements Module{
 			media = reader.queryDB(Column.MEDIUM, attributes, true, true);
 			if (media != null) {
 				message2 = "The media represented here are: " + join(media, ", ");
+				system.addContent("MediaPretty", join(media, ", "));
 			}
 			system.addContent("current_prompt", "NameOfMedium");
 		}
@@ -258,8 +263,11 @@ public class DBModule implements Module{
 			system.addContent("CulturesPretty", join(cultures, ", "));
 			
 			system.addContent("Titles", Arrays.toString(split(titles, " ")));
+			system.addContent("TitlesPretty", join(titles, "; "));
 			system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
+			system.addContent("ArtistsPretty", join(SqliteReader.removeParens(artists), "; "));
 			system.addContent("Media", Arrays.toString(split(media, " ")));
+			system.addContent("MediaPretty", join(media, ", "));
 			system.addContent("Keywords", Arrays.toString(split(SqliteReader.massKeywordsToArray(keywords), " ")));
 		}
 		
@@ -510,6 +518,10 @@ public class DBModule implements Module{
 				system.addContent("TitleOfArtworkStatus", "tentative");
 			}
 		}
+		if (updatedVars.contains("GroundTitleOfArtwork")) {
+			//wew
+			system.addContent("a_m", "Ground(TitleOfArtwork)");
+		}
 		if (updatedVars.contains("GetData")) {
 			title = state.queryProb("GetData").getBest().toString().trim();
 			attributes.put(Column.TITLE, new String[]{title});
@@ -642,6 +654,7 @@ public class DBModule implements Module{
 			}
 			else {
 				//Probably should just end at this point and essentially quit out (stop accepting input)
+				//Maybe ask for a quitting confirmation?
 				//Maybe we should also give the option to do so at an earlier point
 				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
 			}

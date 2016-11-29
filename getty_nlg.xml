@@ -38,7 +38,11 @@
 			<case>
 				<condition>
 					<if var="a_m" value="AskAgain" />
-					<if var="current_step" value="TitleOfArtwork" />
+					<or>
+						<if var="current_step" value="TitleOfArtwork" />
+						<!-- idk why I have 2 names for this -->
+						<if var="current_step" value="ChooseTitle" />
+					</or>
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="Sorry about that. Can you more clearly state which piece you're interested in?" />
@@ -118,10 +122,64 @@
 			<case>
 				<condition>
 					<if var="AskRepeat" value="AskRepeat" />
-					<if var="current_step" value="NameOfCulture" />
+					<if var="a_m" value="Confirm" relation="contains"/>
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="I'm not sure you stated a culture there. Or at least not one that's represented here. In case you're wondering, the cultures we have are: {CulturesPretty}." />
+					<set var="u_m" value="I'd really appreciate if you would answer with a yes or a no..." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="NameOfCulture" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="I'm not sure you stated a culture there. Or at least not one that meshes with your other search criteria. In case you're wondering, the cultures that match are: {CulturesPretty}." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="ChooseKeywords" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Sorry, but it doesn't sound like anything you suggested is represented in our database. Well, at least not with the current search restrictions you've placed" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="SizeOfArt" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Sorry, we've only broken our collection down into Big, Medium, and Small paintings." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="NameOfMedium" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Gee, sorry, but I'm pretty sure that wasn't really a valid option you suggested. A list of valid options is: {MediaPretty}." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="NameOfArtist" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least. Maybe you should try someone from this list: {ArtistsPretty}." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="AskRepeat" value="AskRepeat" />
+					<if var="current_prompt" value="TitleOfArtwork" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Was that one of the choices listed? I don't think so, at least. Maybe you should try something from this list: {TitlesPretty}." />
 				</effect>
 			</case>
 			<case>

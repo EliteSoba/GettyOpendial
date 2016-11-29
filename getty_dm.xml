@@ -97,6 +97,7 @@
 				</condition>
 				<effect util="1">
 					<set var="current_step" value="Explain" />
+					<set var="current_prompt" value="Explain" />
 					<set var="GetData" value="{TitleOfArtwork}" />
 				</effect>
 			</case>
