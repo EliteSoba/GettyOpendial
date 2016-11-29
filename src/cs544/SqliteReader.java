@@ -395,7 +395,7 @@ public class SqliteReader {
 		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
 		attributes.put(Column.CULTURE, new String[]{""});
 		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
-		String[] output = reader.queryDB(Column.CULTURE, attributes, true, true);
+		String[] output = reader.queryDB(Column.PLACE, attributes, true, true);
 		//output = DBModule.split(output, " ");
 		//output = reader.getAll(Column.KEYWORDS, true);
 		/*String[] outputs = new String[0];

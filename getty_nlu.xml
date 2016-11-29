@@ -71,6 +71,10 @@
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
 				</effect>
+				<effect prob="FuzzyMatch({u_u},{Places})">
+					<set var="FuzzyGet" value="{u_u} # {Places} # SetPlace" exclusive="false"/>
+					<set var="a_u" value="FuzzyGet"/>
+				</effect>
 				<effect prob="FuzzyMatch({u_u},{Artists}) - 0.1">
 					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
 					<set var="a_u" value="FuzzyGet"/>
@@ -214,6 +218,15 @@
 				<effect>
 					<set var="ResolveCulture" value="{Culture}" />
 					<!-- It'd be nice to know that this is the step we're confirming/grounding. Not necessary, to be honest -->
+					<set var="current_step" value="NameOfCulture" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="SetPlace({Place})" />
+				</condition>
+				<effect>
+					<set var="ResolvePlace" value="{Place}" />
 					<set var="current_step" value="NameOfCulture" />
 				</effect>
 			</case>

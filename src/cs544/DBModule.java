@@ -26,8 +26,8 @@ public class DBModule implements Module{
 	boolean paused = false;
 	DialogueSystem system;
 	SqliteReader reader;
-	String[] cultures, artists, media, dims, titles, holder, keywords;
-	String culture, artist, medium, size, dim, title, date, story;
+	String[] cultures, artists, media, dims, titles, holder, keywords, places;
+	String culture, artist, medium, size, dim, title, date, story, place;
 	Map<Column, String[]> attributes;
 	ArrayList<Column> queries;
 	boolean debug = true;
@@ -61,6 +61,7 @@ public class DBModule implements Module{
 		titles = reader.getAll(Column.TITLE, false);
 		media = reader.getAll(Column.MEDIUM, true);
 		keywords = reader.getAll(Column.KEYWORDS, true);
+		places = reader.getAll(Column.PLACE, false);
 		attributes = new HashMap<Column, String[]>();
 		queries = new ArrayList<Column>();
 	}
@@ -173,8 +174,11 @@ public class DBModule implements Module{
 				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: ");
 				String list = "";
 				for (int i = 0; i < titles.length; ++i) {
-					list += titles[i] + " | ";
-					if (i % 5 == 0) {
+					list += titles[i];
+					if (i != titles.length - 1 && i % 5 != 4) {
+						list += " | ";
+					}
+					if (i % 5 == 4) {
 						system.addContent("u_m", list);
 						list = "";
 					}
@@ -208,8 +212,11 @@ public class DBModule implements Module{
 					system.addContent("u_m", "All right, here are some artists that fit your criteria: ");
 					String list = "";
 					for (int i = 0; i < a.length; ++i) {
-						list += a[i] + " | ";
-						if (i % 5 == 0) {
+						list += a[i];
+						if (i != a.length - 1 && i % 5 != 4) {
+							list += " | ";
+						}
+						if (i % 5 == 4) {
 							system.addContent("u_m", list);
 							list = "";
 						}
@@ -310,6 +317,7 @@ public class DBModule implements Module{
 			system.addContent("Media", Arrays.toString(split(media, " ")));
 			system.addContent("MediaPretty", join(media, ", "));
 			system.addContent("Keywords", Arrays.toString(split(SqliteReader.massKeywordsToArray(keywords), " ")));
+			system.addContent("Places", Arrays.toString(places));
 		}
 		
 		if (updatedVars.contains("ResolveCulture")) {
@@ -351,6 +359,7 @@ public class DBModule implements Module{
 			
 			attributes.put(Column.CULTURE, new String[]{culture});
 			//If we're replacing, it'll replace automatically with maps, but not with arraylists
+			attributes.remove(Column.PLACE);
 			queries.remove(Column.CULTURE);
 			queries.add(Column.CULTURE);
 			
@@ -359,6 +368,43 @@ public class DBModule implements Module{
 			if (!nextStep(state, false)) {
 				system.addContent("u_m", "Let's just go back a bit and stop looking for " + culture + " paintings in particular.");
 				attributes.remove(Column.CULTURE);
+				queries.remove(Column.CULTURE);
+			}
+		}
+		if (updatedVars.contains("ResolvePlace")) {
+			String[] pls = state.queryProb("ResolvePlace").getBest().toString().trim().split("#");
+			Map<Column, String[]> query = new HashMap<Column, String[]>();
+			
+			query.put(Column.PLACE, pls);
+			
+			String[] results = reader.queryDB(Column.CULTURE, query, true, true);
+			//No results. AskRepeat
+			if (results == null || results.length == 0 || results[0] == null || "null".equalsIgnoreCase(results[0])) {
+				system.addContent("a_m", "AskRepeatCulture");
+			}
+			else if (results.length == 1) {
+				system.addContent("NameOfCulture", results[0]);
+				system.addContent("NameOfCultureStatus", "confirmed");
+				system.addContent("a_m", "Ground(NameOfCulture,"+results[0]+")");
+			}
+			else {
+				cultures = results;
+				//If we get results we're only getting one place in pls.
+				place = pls[0];
+				system.addContent("GroundNameOfPlace", "FILLER");
+			}
+		}
+		if (updatedVars.contains("GroundNameOfPlace")) {
+			attributes.put(Column.PLACE, new String[]{place});
+			attributes.remove(Column.CULTURE);
+			queries.remove(Column.CULTURE);
+			queries.add(Column.CULTURE);
+			
+			//Ground with user and ask for next step
+			system.addContent("u_m", "All right, then let's look at paintings from " + place + ".");
+			if (!nextStep(state, false)) {
+				system.addContent("u_m", "Let's just go back a bit and stop looking for paintings from " + place + " in particular.");
+				attributes.remove(Column.PLACE);
 				queries.remove(Column.CULTURE);
 			}
 		}
@@ -671,8 +717,11 @@ public class DBModule implements Module{
 				system.addContent("u_m", "Okay, feel free to pick another piece to investigate: ");
 				String list = "";
 				for (int i = 0; i < titles.length; ++i) {
-					list += titles[i] + " | ";
-					if (i % 5 == 0) {
+					list += titles[i];
+					if (i != titles.length - 1 && i % 5 != 4) {
+						list += " | ";
+					}
+					if (i % 5 == 4) {
 						system.addContent("u_m", list);
 						list = "";
 					}
@@ -686,8 +735,16 @@ public class DBModule implements Module{
 				Column c = null;
 				do {
 					c = queries.remove(queries.size()-1);
+					//Only one of culture and place will be in the map at any point in time
+					if (c == Column.CULTURE && attributes.containsKey(Column.PLACE)) {
+						c = Column.PLACE;
+					}
 				} while (!attributes.containsKey(c));
 				attributes.remove(c);
+
+				if (c == Column.PLACE) {
+					c = Column.CULTURE;
+				}
 				
 				String current_step = "";
 				String message = "All right, we'll just retract your previous statement, then.";
