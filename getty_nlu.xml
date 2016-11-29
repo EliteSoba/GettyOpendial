@@ -278,6 +278,15 @@
 					<set var="a_m" value="Ground({Slot},{Value})" />
 				</effect>
 			</case>
+			<case>
+				<!-- We'll fall down here if they confirm something and we aren't asking for confirmation -->
+				<condition>
+					<if var="a_u" relation="contains" value="Confirm" />
+				</condition>
+				<effect>
+					<set var="a_m" value="ConfirmPrompt" />
+				</effect>
+			</case>
 		</rule>
 		<rule id="Disconfirmation">
 			<case>

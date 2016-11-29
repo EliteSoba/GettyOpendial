@@ -115,6 +115,73 @@
 				</effect>
 			</case>
 		</rule>
+		
+		<rule id="Prompt Confirm">
+			<!-- If they answer yes to a prompt -->
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="NameOfCulture" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Great! Please tell me what culture you're interested in then." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="ChooseKeywords" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Okay, please let me know what topics you're interested in." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="SizeOfArt" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Well we've divided the collection into big, medium, and small works, so take your pick." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="NameOfMedium" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Sure thing. Most of our works are done on oil on canvas, although there are other media represented such as oil on panel." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="NameOfArtist" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Well, which is the artist you're interested in, then?" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="TitleOfArtwork" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="All right, I'd appreciate if you'd tell me which piece you're interested in." />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_m" value="ConfirmPrompt" />
+					<if var="current_prompt" value="Explain" />
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="So what would you like to know about this piece?" />
+				</effect>
+			</case>
+		</rule>
 	</model>
 	
 	<model trigger="AskRepeat">
@@ -152,7 +219,7 @@
 					<if var="current_prompt" value="SizeOfArt" />
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="Sorry, we've only broken our collection down into Big, Medium, and Small paintings." />
+					<set var="u_m" value="Sorry, we've only broken our collection down into big, medium, and small paintings." />
 				</effect>
 			</case>
 			<case>
