@@ -153,6 +153,15 @@ public class DBModule implements Module{
 				system.addContent("u_m", "Oh dear, it seems we don't have any paintings that fit your restrictions.");
 				return false;
 			}
+			else if (titles.length == 1) {
+				//Only one option, so we'll force it.
+				system.addContent("u_m", "Only one title matches your restrictions: " + titles[0]);
+				system.addContent("u_m", "So let's just jump right into it.");
+				system.addContent("TitleOfArtwork", titles[0]);
+				system.addContent("TitleOfArtworkStatus", "confirmed");
+				system.addContent("a_m", "Ground(TitleOfArtwork)");
+				return true;
+			}
 			else if (titles.length <= 5) {
 				//Provide list of titles b/c its short
 				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
@@ -619,6 +628,7 @@ public class DBModule implements Module{
 			}
 			else {
 				//Probably should just end at this point and essentially quit out (stop accepting input)
+				//Maybe we should also give the option to do so at an earlier point
 				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
 			}
 		}

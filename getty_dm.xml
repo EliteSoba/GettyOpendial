@@ -96,7 +96,6 @@
 					<if var="a_m" value="Ground(TitleOfArtwork)" />
 				</condition>
 				<effect util="1">
-					<!--set var="u_m" value="All right, what would you like to know about {ToA}?" /-->
 					<set var="current_step" value="Explain" />
 					<set var="GetData" value="{TitleOfArtwork}" />
 				</effect>

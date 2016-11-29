@@ -15,6 +15,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
 					<if var="u_u" relation="contains" value="(big|large)" />
 				</condition>
 				<effect>
@@ -24,6 +25,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
 					<if var="u_u" relation="contains" value="small" />
 				</condition>
 				<effect>
@@ -33,6 +35,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
 					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
 				</condition>
 				<effect>
@@ -294,7 +297,19 @@
 				</effect>
 			</case>
 		</rule>
-		
+		<rule id="GoBack2">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<not>
+						<if var="a_m" value="Confirm" relation="contains" />
+					</not>
+				</condition>
+				<effect>
+					<set var="GoBack" value="{current_step}" />
+				</effect>
+			</case>
+		</rule>
 		<!-- If we get other, let's just do AskRepeat, I guess -->
 		<rule id="AskRepeat">
 			<case>
