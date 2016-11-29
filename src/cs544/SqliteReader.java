@@ -181,6 +181,9 @@ public class SqliteReader {
 	public String[] queryDB(Column target, Map<Column, String[]> keys, boolean like, boolean unique) {
 		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE ";
 		
+		if (keys.size() == 0) {
+			return null;
+		}
 		
 		//Someone in the world is probably very unhappy that I'm concatenating
 		//And not StringBuilding

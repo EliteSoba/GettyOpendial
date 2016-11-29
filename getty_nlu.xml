@@ -10,12 +10,24 @@
 
 	<model trigger="u_u">
 	  	
+		<rule id="Exit">
+			<case>
+				<condition>
+					<if var="current_step" value="Exit"/>
+				</condition>
+				<effect>
+					<set var="a_u" value="Literally Nothing. Just blocking here"/>
+				</effect>
+			</case>
+		</rule>
+		
 		<!-- Slotfills the size -->
 		<rule id="Choose Size">
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
 					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
 					<if var="u_u" relation="contains" value="(big|large)" />
 				</condition>
 				<effect>
@@ -26,6 +38,7 @@
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
 					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
 					<if var="u_u" relation="contains" value="small" />
 				</condition>
 				<effect>
@@ -36,6 +49,7 @@
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
 					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
 					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
 				</condition>
 				<effect>
@@ -51,6 +65,7 @@
 				<condition>
 					<if var="current_step" value="Explain" relation="!="/>
 					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Cultures})">
 					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
@@ -138,6 +153,7 @@
 			<case>
 				<condition>
 					<if var="u_u" relation="contains" value="(yes|correct|exactly|sure|right)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
 					<set var="a_u" value="Confirm" exclusive="false"/>
@@ -146,6 +162,7 @@
 			<case>
 				<condition>
 					<if var="u_u" relation="contains" value="(no|nope|wrong)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
 					<set var="a_u" value="Disconfirm" exclusive="false"/>
@@ -158,6 +175,7 @@
 			<case>
 				<condition>
 					<if var="u_u" relation="contains" value="(undo|back|done|never mind)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
 					<set var="a_u" value="GoBack()" />
@@ -304,12 +322,36 @@
 					<not>
 						<if var="a_m" value="Confirm" relation="contains" />
 					</not>
+					<or>
+						<if var="current_step" value="Explain"/>
+						<if var="current_step" value="ChooseTitle"/>
+					</or>
 				</condition>
 				<effect>
 					<set var="GoBack" value="{current_step}" />
 				</effect>
 			</case>
 		</rule>
+		<rule id="MoreSuggestions">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<not>
+						<if var="a_m" value="Confirm" relation="contains" />
+					</not>
+					<not>
+						<or>
+							<if var="current_step" value="Explain"/>
+							<if var="current_step" value="ChooseTitle"/>
+						</or>
+					</not>
+				</condition>
+				<effect>
+					<set var="CycleOptions" value="{current_prompt}" />
+				</effect>
+			</case>
+		</rule>
+		
 		<!-- If we get other, let's just do AskRepeat, I guess -->
 		<rule id="AskRepeat">
 			<case>

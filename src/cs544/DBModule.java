@@ -138,17 +138,20 @@ public class DBModule implements Module{
 	/**
 	 * From any grounding, give suggestions for the next thing to look into
 	 * @param state DialogueState to provide system content. Perhaps unnecessary if all I do is add u_m
+	 * @param bootleg Sad bootleg attempt to make things easier on myself for changing the message for rejections
 	 * @return true if we got any results, false otherwise
 	 */
-	private boolean nextStep(DialogueState state) {
+	private boolean nextStep(DialogueState state, boolean bootleg) {
 		//We're only making these suggestions if title hasn't been filled in yet
 		//If title has been filled in, uh, we probably shouldn't be here...
 		//I wonder if it'd be better to say artists first even if only very few titles...
-		if (!queries.contains(Column.TITLE)) {
+		if (!queries.contains(Column.TITLE) && attributes.size() != 0) {
 			titles = reader.queryDB(Column.TITLE, attributes, true, true);
 			//Running list of titles
 			
-			system.addContent("Titles", Arrays.toString(split(titles, " ")));
+			if (titles != null) {
+				system.addContent("Titles", Arrays.toString(split(titles, " ")));
+			}
 			if (titles == null || titles.length == 0) {
 				system.addContent("u_m", "Oh dear, it seems we don't have any paintings that fit your restrictions.");
 				return false;
@@ -162,8 +165,9 @@ public class DBModule implements Module{
 				system.addContent("a_m", "Ground(TitleOfArtwork)");
 				return true;
 			}
-			else if (titles.length <= 5) {
+			else if (titles.length <= 5 || queries.size() >= 5) {
 				//Provide list of titles b/c its short
+				//Alternatively, out of things to query for
 				system.addContent("u_m", "Okay, here is a list of paintings that fit your criteria: " + join(titles, "; "));
 				system.addContent("u_m", "Any of these titles pique your interest?");
 				system.addContent("current_step", "ChooseTitle");
@@ -175,48 +179,57 @@ public class DBModule implements Module{
 				artists = reader.queryDB(Column.ARTIST, attributes, true, true);
 				//Running list of artists
 				//I should just make a function to get a dupeless, parenless artists
-				system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
+				if (artists != null) {
+					system.addContent("Artists", Arrays.toString(split(SqliteReader.removeDupesAndParens(artists), " ")));
+				}
 				if (artists != null && artists.length <= 5 || queries.size() >= 3) {
 					//Provide list of artists b/c its short
 					system.addContent("u_m", "All right, here are some artists that fit your criteria: " + join(SqliteReader.removeDupesAndParens(artists), "; "));
 					system.addContent("u_m", "Is there any artist in particular that you're interested in?");
+					system.addContent("current_prompt", "NameOfArtist");
 					return true;
 				}
 			}
 		}
-		//We fall down here if nothing else worked
-		//Set some more running filters
-		//At this point I wonder if it'd be better to just leave options open, but backpedal when faced with no results  
-		/*
-		if (!queries.contains(Column.CULTURE)) {
-			cultures = SqliteReader.removeDupes(SqliteReader.removeParens(reader.queryDB(Column.CULTURE, attributes, true, true)));
-			system.addContent("Cultures", Arrays.toString(cultures));
-		}
-		if (!queries.contains(Column.MEDIUM)) {
-			
-		}*/
-		
+		//We fall down here if nothing else worked	
 		
 		String message = "Hmm... There seem to be a lot of paintings meeting your criteria so perhaps ";
+		if (bootleg) {
+			message = "Okay then. Well there are still other ways to limit your search, so perhaps ";
+		}
 		String message2 = "";
 		//Might be worth also putting a list of options for each suggested choice
 		if (!queries.contains(Column.KEYWORDS)) {
 			message += "you're looking for a particular subject or theme for your search?";
 			message2 = "Some examples would include \"Christianity\", or \"Impressionism\"";
+			system.addContent("current_prompt", "ChooseKeywords");
 		}
 		else if (!queries.contains(Column.CULTURE)) {
 			message += "you'd care to restrict your search to only a particular culture?";
 			cultures = reader.queryDB(Column.CULTURE, attributes, true, true);
-			message2 = "The cultures available to choose from are: " + join(SqliteReader.removeDupesAndParens(cultures), ", ");
+			if (cultures != null) {
+				message2 = "The cultures available to choose from are: " + join(SqliteReader.removeDupesAndParens(cultures), ", ");
+			}
+			system.addContent("current_prompt", "NameOfCulture");
 		}
 		else if (!queries.contains(Column.SIZE)) {
 			message += "you'd like to narrow down your options by size?";
 			message2 = "Currently, our selection is divided into big, medium, and small paintings";
+			system.addContent("current_prompt", "SizeOfArt");
 		}
 		else if (!queries.contains(Column.MEDIUM)) {
 			message += "you'd be interested in a particular medium?";
 			media = reader.queryDB(Column.MEDIUM, attributes, true, true);
-			message2 = "The media represented here are: " + join(media, ", ");
+			if (media != null) {
+				message2 = "The media represented here are: " + join(media, ", ");
+			}
+			system.addContent("current_prompt", "NameOfMedium");
+		}
+		else {
+			//This only happens if we have no queries because a single query will be caught higher up
+			system.addContent("u_m", "I see how it is. If you don't want to play along, then fine. I'm leaving.");
+			system.addContent("current_step", "Exit");
+			return true;
 		}
 		system.addContent("u_m", message);
 		if (!"".equals(message2)) {
@@ -294,7 +307,7 @@ public class DBModule implements Module{
 			
 			//Ground with user and ask for next step
 			system.addContent("u_m", "All right, then let's look at " + culture + " paintings.");
-			if (!nextStep(state)) {
+			if (!nextStep(state, false)) {
 				system.addContent("u_m", "Let's just go back a bit and stop looking for " + culture + " paintings in particular.");
 				attributes.remove(Column.CULTURE);
 				queries.remove(Column.CULTURE);
@@ -321,7 +334,7 @@ public class DBModule implements Module{
 
 			//Ground with user and ask for next step
 			system.addContent("u_m", size + " paintings? Sounds good.");
-			if (!nextStep(state)) {
+			if (!nextStep(state, false)) {
 				system.addContent("u_m", "We'll remove this size filter, so maybe pick a different size you're interested in.");
 				attributes.remove(Column.SIZE);
 				queries.remove(Column.SIZE);
@@ -364,7 +377,7 @@ public class DBModule implements Module{
 			system.addContent("u_m", "Okay, we'll get you paintings by " + SqliteReader.removeParens(artist));
 			//nextStep will either prompt for title or warn that there are no works
 			//the latter should never happen because an artist with no matching works won't be an option
-			nextStep(state);
+			nextStep(state, false);
 		}
 		
 		if (updatedVars.contains("ResolveMedium")) {
@@ -429,7 +442,7 @@ public class DBModule implements Module{
 			queries.add(Column.MEDIUM);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
-			if (!nextStep(state)) {
+			if (!nextStep(state, false)) {
 				system.addContent("u_m", "Maybe you'll find more success with another medium.");
 				attributes.remove(Column.MEDIUM);
 				queries.remove(Column.MEDIUM);
@@ -466,7 +479,7 @@ public class DBModule implements Module{
 			queries.add(Column.KEYWORDS);
 			
 			system.addContent("u_m", "Okay, we'll look for paintings like that.");
-			if (!nextStep(state)) {
+			if (!nextStep(state, false)) {
 				system.addContent("u_m", "How about you suggest some ideas for what other topics you'd like to see");
 				attributes.remove(Column.KEYWORDS);
 				queries.remove(Column.KEYWORDS);
@@ -622,6 +635,7 @@ public class DBModule implements Module{
 				}
 				
 				system.addContent("current_step", current_step);
+				system.addContent("current_prompt", current_step);
 				system.addContent(current_step, "None");
 				system.addContent(current_step + "Status", "empty");
 				system.addContent("u_m", message);
@@ -631,6 +645,29 @@ public class DBModule implements Module{
 				//Maybe we should also give the option to do so at an earlier point
 				system.addContent("u_m", "Sorry. We're at the farthest back we can go. We can only go forward from here!");
 			}
+		}
+		
+		if (updatedVars.contains("CycleOptions")) {
+			//We give suggestions to the user and they can reject the suggestions and ask for new suggestions
+			String prompt = state.queryProb("CycleOptions").getBest().toString().trim();
+			
+			if ("NameOfCulture".equals(prompt)) {
+				queries.add(Column.CULTURE);
+			}
+			else if ("ChooseKeywords".equals(prompt)) {
+				queries.add(Column.KEYWORDS);
+			}
+			else if ("SizeOfArt".equals(prompt)) {
+				queries.add(Column.SIZE);
+			}
+			else if ("NameOfMedium".equals(prompt)) {
+				queries.add(Column.MEDIUM);
+			}
+			else if ("NameOfArtist".equals(prompt)) {
+				queries.add(Column.ARTIST);
+			}
+			
+			nextStep(state, true);
 		}
 		
 	}

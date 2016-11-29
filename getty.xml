@@ -32,6 +32,9 @@
 		<variable id="TitleOfArtwork">
 			<value>None</value>
 		</variable>
+		<variable id="current_prompt">
+			<value>NameOfCulture</value>
+		</variable>
 	</initialstate>
 	
 	<!-- Natural Language Understanding Models -->
