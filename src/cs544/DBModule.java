@@ -682,7 +682,11 @@ public class DBModule implements Module{
 				}
 			}
 			else if (queries.size() >= 1) {
-				Column c = queries.remove(queries.size()-1);
+				//When we back out, we realllly back out
+				Column c = null;
+				do {
+					c = queries.remove(queries.size()-1);
+				} while (!attributes.containsKey(c));
 				attributes.remove(c);
 				
 				String current_step = "";
