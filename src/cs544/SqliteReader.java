@@ -123,7 +123,7 @@ public class SqliteReader {
 		}
 		
 		try {
-			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key + " ORDER BY COUNT(" + target.key + ") DESC") : "") + " COLLATE NOCASE");
+			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE" + (unique ? (" ORDER BY COUNT(" + target.key + ") DESC") : ""));
 			ArrayList<String> res = new ArrayList<String>();
 			
 			while (rs.next()) {
@@ -390,19 +390,19 @@ public class SqliteReader {
 		}
 		
 		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
-		attributes.put(Column.KEYWORDS, new String[]{"epic poems"});
+		attributes.put(Column.CULTURE, new String[]{""});
 		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
-		String[] output = reader.queryDB(Column.KEYWORDS, attributes, true, true);
+		String[] output = reader.queryDB(Column.CULTURE, attributes, true, true);
 		//output = DBModule.split(output, " ");
-		output = reader.getAll(Column.KEYWORDS, true);
-		String[] outputs = new String[0];
-		System.out.println(Arrays.toString(massKeywordsToArray(output)));
+		//output = reader.getAll(Column.KEYWORDS, true);
+		/*String[] outputs = new String[0];
+		//System.out.println(Arrays.toString(massKeywordsToArray(output)));
 		for (String o : output) {
-			System.out.println(Arrays.toString(keywordsToMap(o).keySet().toArray(outputs)));
-		}
+			//System.out.println(Arrays.toString(keywordsToMap(o).keySet().toArray(outputs)));
+		}*/
 		//System.out.println(DBModule.join(output, "\n"));
 		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
-		//System.out.println(Arrays.toString(output));
+		System.out.println(Arrays.toString(output));
 		/*System.out.println(Arrays.toString(output));
 		System.out.println(output[0].equals("null"));
 		output = reader.getAll(Column.CULTURE, true);

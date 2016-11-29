@@ -30,7 +30,7 @@ public class DBModule implements Module{
 	String culture, artist, medium, size, dim, title, date, story;
 	Map<Column, String[]> attributes;
 	ArrayList<Column> queries;
-	boolean debug = false;
+	boolean debug = true;
 	
 	public static String[] stopwords = {"the", "de", "van", "der", "to", "attributed", "of", "le", "di", "el", "possibly",
 			"la", "y", "ter", "and", "by", "workshop", "with", "for", "in", "an", "a", "at", "as", "du", "et", "other", "new",
