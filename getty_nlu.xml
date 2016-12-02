@@ -9,60 +9,94 @@
 	-->
 
 	<model trigger="u_u">
-	  	  
+	  	
+		<rule id="Exit">
+			<case>
+				<condition>
+					<if var="current_step" value="Exit"/>
+				</condition>
+				<effect>
+					<set var="a_u" value="Literally Nothing. Just blocking here"/>
+				</effect>
+			</case>
+		</rule>
+		
+		<!-- Slotfills the size -->
+		<rule id="Choose Size">
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
+					<if var="u_u" relation="contains" value="(big|large)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetSize(Big)" exclusive="true"/>
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
+					<if var="u_u" relation="contains" value="small" />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetSize(Small)" exclusive="true"/>
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
+					<if var="u_u" relation="contains" value="(medium|mid*sized)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="SetSize(Medium)" exclusive="true"/>
+				</effect>
+			</case>
+			<case id="Choose Culture">
+				<condition>
+					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="!="/>
+					<if var="current_step" value="Exit" relation="!="/>
+				</condition>
+				<effect prob="FuzzyMatch({u_u},{Cultures})">
+					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
+				</effect>
+				<effect prob="FuzzyMatch({u_u},{Places})">
+					<set var="FuzzyGet" value="{u_u} # {Places} # SetPlace" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
+				</effect>
+				<effect prob="FuzzyMatch({u_u},{Artists}) - 0.1">
+					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
+				</effect>
+				<effect prob="FuzzyMatch({u_u},{Media}) - 0.1">
+					<set var="FuzzyGet" value="{u_u} # {Media} # SetMedium" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
+				</effect>
+				<effect prob="FuzzyMatch({u_u},{Keywords}) - 0.5">
+					<set var="FuzzyGet" value="{u_u} # {Keywords} # SetKeywords" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
+				</effect>
+			</case>
+		</rule>
 		<!-- Extracts paintings based on culture  -->
 		<!-- Right now, doesn't accept multiple word responses. I'll get on that eventually, I guess -->
 		<!-- Opendial seems to be a bit buggy in that you can provide a hardcoded list and the flightbooking example will work, but a variable list and it'll just not work. Thus I need to create a custom function for it -->
-		<rule>
-			<case>
-				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
-				</condition>
-				<effect prob="FuzzyMatch({u_u},{Cultures})">
-					<set var="FuzzyGet" value="{u_u} # {Cultures} # SetCulture" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
-				</effect>
-			</case>
-		</rule>
-
-		<!-- Extracts paintings based on artist  -->
-		<rule>
-			<case>
-				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
-				</condition>
-				<effect prob="FuzzyMatch({u_u},{Artists})">
-					<set var="FuzzyGet" value="{u_u} # {Artists} # SetArtist" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
-				</effect>
-			</case>
-		</rule>
-
-		<!-- Extracts paintings based on the SIZE.  -->
-		<!-- Sorry, but I think size is more interesting than medium here -->
-		<!-- Sorry again, but I don't think this filter is necessary right now. Maybe if we go Culture -> Size -> Artist instead of Culture -> Artist or maybe we can do Size -> Artist or Size -> Culture etc. -->
-		<rule>
-			<case>
-				<condition>
-					<if var="Size" relation="in"
-						value="[Oil, water]" /> <!-- GetMedium() -->
-					<if var="u_u" relation="contains" value=" * {Size} * " />
-				</condition>
-				<effect>
-					<set var="a_u" value="SetSize({Size})" exclusive="false"/>
-				</effect>
-			</case>
-		</rule>
 		
 		<!-- Time to get the title -->
 		<rule>
 			<case>
 				<condition>
-					<if var="current_step" value="Explain" relation="!="/>
+					<if var="current_step" value="ChooseTitle" relation="="/>
 				</condition>
 				<effect prob="FuzzyMatch({u_u},{Titles})">
-					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="false"/>
-					<set var="a_u" value="FuzzyGet" exclusive="false"/>
+					<set var="FuzzyGet" value="{u_u} # {Titles} # SetTitle" exclusive="true"/>
+					<set var="a_u" value="FuzzyGet" exclusive="true"/>
 				</effect>
 			</case>
 		</rule>
@@ -72,7 +106,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(age|old|year|when|how long)" />
+					<if var="u_u" relation="contains" value="(age|old|year|when|how long|date|period|era)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Date)" />
@@ -90,7 +124,7 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(why|story|meaning|idea|motivation|reason)" />
+					<if var="u_u" relation="contains" value="(why|story|meaning|idea|motivation|reason|background|history|description|describe)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Story)" />
@@ -99,10 +133,37 @@
 			<case>
 				<condition>
 					<if var="current_step" value="Explain" />
-					<if var="u_u" relation="contains" value="(medium|made on|canvas|panel|oil|painted on|paint|how * made)" />
+					<if var="u_u" relation="contains" value="(medium|made on|canvas|panel|oil|painted on|paint|how * made|material|type of paint|kind of paint)" />
 				</condition>
 				<effect>
 					<set var="a_u" value="Explain(Medium)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(who|artist|painter)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Artist)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(where|country|place)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Location)" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="current_step" value="Explain" />
+					<if var="u_u" relation="contains" value="(title|name*painting)" />
+				</condition>
+				<effect>
+					<set var="a_u" value="Explain(Title)" />
 				</effect>
 			</case>
 		</rule>
@@ -112,6 +173,7 @@
 			<case>
 				<condition>
 					<if var="u_u" relation="contains" value="(yes|correct|exactly|sure|right)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
 					<set var="a_u" value="Confirm" exclusive="false"/>
@@ -119,7 +181,8 @@
 			</case>
 			<case>
 				<condition>
-					<if var="u_u" relation="contains" value="(no|nope|wrong)" />
+					<if var="u_u" relation="contains" value="(no|nope|wrong|not really)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
 					<set var="a_u" value="Disconfirm" exclusive="false"/>
@@ -132,9 +195,10 @@
 			<case>
 				<condition>
 					<if var="u_u" relation="contains" value="(undo|back|done|never mind)" />
+					<if var="current_step" value="Exit" relation="!="/>
 				</condition>
 				<effect>
-					<set var="a_u" value="GoBack()" />
+					<set var="a_u" value="GoBack" />
 				</effect>
 			</case>
 		</rule>
@@ -164,34 +228,65 @@
 		<rule id="Slotfilling">
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfCulture" />
+					<!--if var="current_step" value="NameOfCulture" /-->
 					<if var="a_u" relation="contains" value="SetCulture({Culture})" />
 				</condition>
 				<effect>
 					<set var="ResolveCulture" value="{Culture}" />
+					<!-- It'd be nice to know that this is the step we're confirming/grounding. Not necessary, to be honest -->
+					<set var="current_step" value="NameOfCulture" />
 				</effect>
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="NameOfArtist" />
+					<if var="a_u" relation="contains" value="SetPlace({Place})" />
+				</condition>
+				<effect>
+					<set var="ResolvePlace" value="{Place}" />
+					<set var="current_step" value="NameOfCulture" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<!--if var="current_step" value="NameOfArtist" /-->
 					<if var="a_u" relation="contains" value="SetArtist({Artist})" />
 				</condition>
 				<effect>
 					<set var="ResolveArtist" value="{Artist}" />
+					<set var="current_step" value="NameOfArtist" />
 				</effect>
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="SizeOfArtwork" />
+					<!--if var="current_step" value="SizeOfArtwork" /-->
 					<if var="a_u" relation="contains" value="SetSize({Size})" />
 				</condition>
 				<effect>
-					<set var="{current_step}" value="{Size}" />
+					<set var="ResolveSize" value="{Size}" />
+					<set var="current_step" value="SizeOfArt" />
 				</effect>
 			</case>
 			<case>
 				<condition>
-					<if var="current_step" value="TitleOfArtwork" />
+					<if var="a_u" relation="contains" value="SetKeywords({words})" />
+				</condition>
+				<effect>
+					<set var="ResolveKeywords" value="{words}" />
+					<set var="current_step" value="ChooseKeywords" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="SetMedium({Medium})" />
+				</condition>
+				<effect>
+					<set var="ResolveMedium" value="{Medium}" />
+					<set var="current_step" value="NameOfMedium" />
+				</effect>
+			</case>
+			<case>
+				<condition>
+					<!--if var="current_step" value="TitleOfArtwork" /-->
 					<if var="a_u" relation="contains" value="SetTitle({Title})" />
 				</condition>
 				<effect>
@@ -207,8 +302,18 @@
 				</condition>
 				<effect>
 					<set var="{Slot}Status" value="confirmed" />
-					<set var="{Slot}" value="{Value}" />
-					<set var="a_m" value="Ground({Slot})" />
+					<!-- I don't think this is even necessary, as I set this in the module -->
+					<!--set var="{Slot}" value="{Value}" /-->
+					<set var="a_m" value="Ground({Slot},{Value})" />
+				</effect>
+			</case>
+			<case>
+				<!-- We'll fall down here if they confirm something and we aren't asking for confirmation -->
+				<condition>
+					<if var="a_u" relation="contains" value="Confirm" />
+				</condition>
+				<effect>
+					<set var="a_m" value="ConfirmPrompt" />
 				</effect>
 			</case>
 		</rule>
@@ -222,6 +327,32 @@
 					<set var="{Slot}Status" value="empty" />
 					<set var="{Slot}" value="None" />
 					<set var="a_m" value="AskAgain" />
+					<set var="current_prompt" value="{current_step}" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="Confirmation Exit">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Confirm" />
+					<if var="a_m" value="Confirm(Exit)" />
+				</condition>
+				<effect>
+					<set var="current_step" value="Exit" />
+					<set var="current_prompt" value="Exit" />
+					<set var="u_m" value="Okay, have a nice day!" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="Disconfirmation Exit">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<if var="a_m" value="Confirm(Exit)" />
+				</condition>
+				<effect>
+					<set var="a_m" value="AskAgain" />
+					<set var="GoBack" value="Exit" />
 				</effect>
 			</case>
 		</rule>
@@ -241,10 +372,46 @@
 		<rule id="GoBack">
 			<case>
 				<condition>
-					<if var="a_u" relation="contains" value="GoBack" />
+					<if var="a_u" value="GoBack" />
 				</condition>
 				<effect>
 					<set var="GoBack" value="{current_step}" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="GoBack2">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<not>
+						<if var="a_m" value="Confirm" relation="contains" />
+					</not>
+					<or>
+						<if var="current_step" value="Explain"/>
+						<if var="current_step" value="ChooseTitle"/>
+					</or>
+				</condition>
+				<effect>
+					<set var="GoBack" value="{current_step}" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="MoreSuggestions">
+			<case>
+				<condition>
+					<if var="a_u" relation="contains" value="Disconfirm" />
+					<not>
+						<if var="a_m" value="Confirm" relation="contains" />
+					</not>
+					<not>
+						<or>
+							<if var="current_step" value="Explain"/>
+							<if var="current_step" value="ChooseTitle"/>
+						</or>
+					</not>
+				</condition>
+				<effect>
+					<set var="CycleOptions" value="{current_prompt}" />
 				</effect>
 			</case>
 		</rule>

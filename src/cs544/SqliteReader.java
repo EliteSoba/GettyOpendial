@@ -7,7 +7,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.sqlite.Function;
 
@@ -30,7 +32,10 @@ public class SqliteReader {
 		DATE ("DATE"),
 		MEDIUM ("MEDIUM"),
 		DIM ("DIMENSIONS"),
-		STORY ("STORY");
+		STORY ("STORY"),
+		SIZE ("SIZE(DIMENSIONS)"),
+		PLACE ("PLACE"),
+		KEYWORDS("KEYWORDS");
 		
 		public String key;
 		Column(String key) {
@@ -108,8 +113,17 @@ public class SqliteReader {
 	private String[] runQuery(String query, Column target, boolean unique) {
 		String[] results = null;
 
+		if (target == Column.ARTIST) {
+			if (query.contains("WHERE")) {
+				query += " AND " + target.key + " NOT LIKE \"%Unknown%\"";
+			}
+			else {
+				query += " WHERE " + target.key + " NOT LIKE \"%Unknown%\"";
+			}
+		}
+		
 		try {
-			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE");
+			ResultSet rs = statement.executeQuery(query + (unique ? (" GROUP BY " + target.key) : "") + " COLLATE NOCASE" + (unique ? (" ORDER BY COUNT(" + target.key + ") DESC") : ""));
 			ArrayList<String> res = new ArrayList<String>();
 			
 			while (rs.next()) {
@@ -167,6 +181,9 @@ public class SqliteReader {
 	public String[] queryDB(Column target, Map<Column, String[]> keys, boolean like, boolean unique) {
 		String query = "SELECT \"" + clean(target.key) + "\" FROM " + TABLE + " WHERE ";
 		
+		if (keys.size() == 0) {
+			return null;
+		}
 		
 		//Someone in the world is probably very unhappy that I'm concatenating
 		//And not StringBuilding
@@ -179,12 +196,26 @@ public class SqliteReader {
 				else {
 					first = false;
 				}
-				query += "\"" + clean(key.key);
-				if (like) {
-					query += "\" LIKE \"%" + clean(k) + "%\"";
+				
+				if (key == Column.SIZE) {
+					if (k.equalsIgnoreCase("Big")) {
+						query += key.key + " >= 10000";
+					}
+					else if (k.equalsIgnoreCase("Medium")) {
+						query += key.key + " >= 3600 AND " + key.key + " < 10000";
+					}
+					else if (k.equalsIgnoreCase("Small")) {
+						query += key.key + " < 3600";
+					}
 				}
 				else {
-					query += "\" = \"" + clean(k) + "\"";
+					query += "\"" + clean(key.key);
+					if (like) {
+						query += "\" LIKE \"%" + clean(k) + "%\"";
+					}
+					else {
+						query += "\" = \"" + clean(k) + "\"";
+					}
 				}
 			}
 		}
@@ -276,6 +307,15 @@ public class SqliteReader {
 	}
 	
 	/**
+	 * Shortcut for removeDupes(removeParens(String[]))
+	 * @param results the array to remove dupes and parens from
+	 * @return the array without dupes and parens
+	 */
+	public static String[] removeDupesAndParens(String[] results) {
+		return removeDupes(removeParens(results));
+	}
+	
+	/**
 	 * Get all the unique values of a certain column
 	 * @param column The column of interest
 	 * @param parens Whether or not to remove parenthetical values
@@ -286,23 +326,66 @@ public class SqliteReader {
 		String[] results = runQuery(query, column, true);
 		
 		if (parens) {
-			results = removeParens(results);
-			//Entries were unique before parens were removed
-			//Now, we're not so sure
-			results = removeDupes(results);
+			results = removeDupesAndParens(results);
 		}
 		
 		return results;
+	}
+	
+	/**
+	 * Keywords aren't in the best format, so I make it into a map
+	 * @param keywords The keywords column from the table
+	 * @return A map of keyword-confidence pairs
+	 */
+	public static Map<String, Double> keywordsToMap(String keywords) {
+		Map<String, Double> keymap = new HashMap<String, Double>();
+		if (keywords == null || keywords.length() <= 2) {
+			return keymap;
+		}
+		String keys = keywords.substring(2, keywords.length()-2);
+		String[] ks = keys.split("\". \"");
+		
+		for (String k : ks) {
+			//Super optimism
+			String key = k.split("=")[0];
+			double d = Double.parseDouble(k.split("=")[1].replaceAll("\"", ""));
+			
+			keymap.put(key, d);
+		}
+		
+		return keymap;
+	}
+	
+	/**
+	 * Converts an array of keywords into a bigger array of those keywords
+	 * @param keywordss The list of keyword lists
+	 * @return An array containing all the keywords sans confidence
+	 */
+	public static String[] massKeywordsToArray(String[] keywordss) {
+		Set<String> tokens = new HashSet<String>();
+		for (String keywords : keywordss) {
+			Map<String, Double> keymap = keywordsToMap(keywords);
+			tokens.addAll(keymap.keySet());
+		}
+		
+		String[] newList = new String[tokens.size()];
+		
+		int i = 0;
+		for (String token : tokens) {
+			newList[i++] = token;
+		}
+		
+		return newList;
 	}
 	
 	public static void main(String[] args) {
 		SqliteReader reader = new SqliteReader("getty.db");
 		
 		try {
-			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + ", DIMENSIONS, SIZE(DIMENSIONS) as size FROM PAINTINGS WHERE size < 3600 order by size");
+			ResultSet rs = reader.statement.executeQuery("SELECT " + Column.TITLE + " FROM PAINTINGS WHERE SIZE(DIMENSIONS) < 3600 order by SIZE(DIMENSIONS)");
 			
 			while (rs.next()) {
-				//System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
+				//System.out.println(rs.getString(1));
 			}
 			
 		} catch (SQLException e) {
@@ -310,10 +393,18 @@ public class SqliteReader {
 		}
 		
 		Map<Column, String[]> attributes = new HashMap<Column, String[]>();
-		attributes.put(Column.CULTURE, new String[]{"French"});
-		attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
-		String[] output = reader.queryDB(Column.TITLE, attributes, true, true);
+		attributes.put(Column.CULTURE, new String[]{""});
+		//attributes.put(Column.ARTIST, new String[]{"After  Hyacinthe Rigaud"});
+		String[] output = reader.queryDB(Column.PLACE, attributes, true, true);
 		//output = DBModule.split(output, " ");
+		//output = reader.getAll(Column.KEYWORDS, true);
+		/*String[] outputs = new String[0];
+		//System.out.println(Arrays.toString(massKeywordsToArray(output)));
+		for (String o : output) {
+			//System.out.println(Arrays.toString(keywordsToMap(o).keySet().toArray(outputs)));
+		}*/
+		//System.out.println(DBModule.join(output, "\n"));
+		//output = reader.filterSize(Column.DIM, attributes, true, true, Size.MEDIUM);
 		System.out.println(Arrays.toString(output));
 		/*System.out.println(Arrays.toString(output));
 		System.out.println(output[0].equals("null"));

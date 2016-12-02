@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <domain>
 	<!-- Dialogue Management -->
-	<model trigger="NameOfCultureStatus,NameOfArtistStatus,TitleOfArtworkStatus">
+	<model trigger="NameOfCultureStatus,NameOfArtistStatus,TitleOfArtworkStatus,SizeOfArtStatus,NameOfMediumStatus,ChooseKeywordsStatus">
 		<!-- Based on DBModule, we'll never have a tentative NoCS -->
 		<!--rule id="NoCS Fill">
 			<case>
@@ -28,11 +28,44 @@
 				</effect>
 			</case>
 		</rule>
+		<rule id="SoAS Fill">
+			<case>
+				<condition>
+					<if var="SizeOfArtStatus" value="tentative" relation="="/>
+					<if var="current_step" value="SizeOfArt" />
+				</condition>
+				<effect util="1">
+					<set var="a_m" value="Confirm(SizeOfArt, {SizeOfArt})" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="NoMS Fill">
+			<case>
+				<condition>
+					<if var="NameOfMediumStatus" value="tentative" relation="="/>
+					<if var="current_step" value="NameOfMedium" />
+				</condition>
+				<effect util="1">
+					<set var="a_m" value="Confirm(NameOfMedium, {NameOfMedium})" />
+				</effect>
+			</case>
+		</rule>
+		<rule id="CKS Fill">
+			<case>
+				<condition>
+					<if var="ChooseKeywordsStatus" value="tentative" relation="="/>
+					<if var="current_step" value="ChooseKeywords" />
+				</condition>
+				<effect util="1">
+					<set var="a_m" value="Confirm(ChooseKeywords, {ChooseKeywords})" />
+				</effect>
+			</case>
+		</rule>
 		<rule id="ToAS Fill">
 			<case>
 				<condition>
 					<if var="TitleOfArtworkStatus" value="tentative" relation="="/>
-					<if var="current_step" value="TitleOfArtwork" />
+					<if var="current_step" value="ChooseTitle" />
 				</condition>
 				<!-- The cooler thing would probably be to set the confidence = 1/len(results) in DBModule -->
 				<!-- The coolest thing would be to query using ORs for the keywords instead of ANDs, and keep a count of which results pop up the most for the different keywords. Then we choose the result that matched the most frequently using a confidence of some scaling of the occurrence rate -->
@@ -47,27 +80,13 @@
 	</model>
 	
 	<model trigger="a_m">
-		<rule id="Ground NoC">
+		<rule id="Generic Grounding">
 			<case>
 				<condition>
-					<if var="a_m" value="Ground(NameOfCulture)" />
+					<if var="a_m" value="Ground({Slot},{Value})" />
 				</condition>
 				<effect util="1">
-					<!--set var="u_m" value="Temp confirmation message. Real thing in nlg. {NoC}." /-->
-					<set var="current_step" value="NameOfArtist" />
-					<set var="GetArtists" value="{NameOfCulture}" />
-				</effect>
-			</case>
-		</rule>
-		<rule id="Ground NoA">
-			<case>
-				<condition>
-					<if var="a_m" value="Ground(NameOfArtist)" />
-				</condition>
-				<effect util="1">
-					<!--set var="u_m" value="Temp confirmation message. Real thing in nlg. {NoA}." /-->
-					<set var="current_step" value="TitleOfArtwork" />
-					<set var="GetTitles" value="{NameOfArtist}" />
+					<set var="Ground{Slot}" value="{Value}" />
 				</effect>
 			</case>
 		</rule>
@@ -77,8 +96,8 @@
 					<if var="a_m" value="Ground(TitleOfArtwork)" />
 				</condition>
 				<effect util="1">
-					<!--set var="u_m" value="All right, what would you like to know about {ToA}?" /-->
 					<set var="current_step" value="Explain" />
+					<set var="current_prompt" value="Explain" />
 					<set var="GetData" value="{TitleOfArtwork}" />
 				</effect>
 			</case>
