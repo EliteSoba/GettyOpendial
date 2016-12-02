@@ -1,0 +1,22 @@
+New Plan:
+	If uu contains a size keyword
+		Set Size
+	elif uu contains an artist keyword
+		set artist
+	elif uu contains a culture keyword
+		set culture
+	elif uu contains a medium keyword
+		set medium
+	elif uu contains a story keyword
+		set story
+	else //if not a confirmation or explanation request or going back
+		askrepeat
+
+Set(Var) -> module work to properly set the results
+Grounds or requests grounding; in latter case user will confirm and grounding will happen
+in grounding step, add column to query stack and add key-value pair to attributes map
+get paintings; title shouldn't be set yet; if small number (<6) of paintings, give suggestions
+if large number of paintings
+get artists if artists isnt set yet; if small number of artists, suggest artists. 
+
+There are pretty much two main phases: slotfilling and explaining.
